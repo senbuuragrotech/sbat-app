@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SEN-BUUR AGRO-TECH - v27 | Gestion Complète</title>
+  <title>SEN-BUUR AGRO-TECH - v28 | Gestion Sécurisée</title>
   
   <!-- Bibliothèques externes -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1282,18 +1282,296 @@
         margin: 0.5cm;
       }
     }
+
+    /* ═══════════════════════════════════════════════
+       SÉCURITÉ — FINAL28 : Écran de connexion
+       ═══════════════════════════════════════════════ */
+    #loginScreen {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1e40af 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .login-card {
+      background: white;
+      border-radius: 1.5rem;
+      padding: 2.5rem 2rem;
+      max-width: 400px;
+      width: 92%;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+      text-align: center;
+      animation: loginFadeIn 0.5s ease;
+    }
+    @keyframes loginFadeIn {
+      from { opacity: 0; transform: translateY(-30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .login-logo {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+    }
+    .login-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #1e40af;
+      margin-bottom: 0.25rem;
+    }
+    .login-subtitle {
+      font-size: 0.85rem;
+      color: #6b7280;
+      margin-bottom: 1.75rem;
+    }
+    .login-input-wrap {
+      position: relative;
+      margin-bottom: 1rem;
+    }
+    .login-input {
+      width: 100%;
+      padding: 0.875rem 3rem 0.875rem 1rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 0.75rem;
+      font-size: 1.1rem;
+      letter-spacing: 0.15em;
+      text-align: center;
+      transition: all 0.2s;
+      background: #f9fafb;
+    }
+    .login-input:focus {
+      outline: none;
+      border-color: #1e40af;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(30,64,175,0.1);
+    }
+    .login-eye {
+      position: absolute;
+      right: 0.875rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.1rem;
+      color: #9ca3af;
+      padding: 0;
+    }
+    .login-btn {
+      width: 100%;
+      padding: 0.875rem;
+      background: linear-gradient(135deg, #1e40af, #3b82f6);
+      color: white;
+      border: none;
+      border-radius: 0.75rem;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 0.75rem;
+      box-shadow: 0 4px 12px rgba(30,64,175,0.3);
+    }
+    .login-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(30,64,175,0.4);
+    }
+    .login-btn:active { transform: translateY(0); }
+    .login-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .login-error {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      margin-top: 0.75rem;
+      display: none;
+      animation: shake 0.4s ease;
+    }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25%      { transform: translateX(-8px); }
+      75%      { transform: translateX(8px); }
+    }
+    .login-error.visible { display: block; }
+    .login-attempts {
+      display: flex;
+      justify-content: center;
+      gap: 0.4rem;
+      margin-top: 1rem;
+    }
+    .attempt-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #e5e7eb;
+      transition: background 0.2s;
+    }
+    .attempt-dot.used { background: #dc2626; }
+    .login-footer {
+      margin-top: 1.5rem;
+      font-size: 0.75rem;
+      color: #9ca3af;
+    }
+    /* Setup screen */
+    .setup-step {
+      display: none;
+    }
+    .setup-step.active { display: block; }
+    .strength-bar {
+      height: 4px;
+      background: #e5e7eb;
+      border-radius: 2px;
+      margin-top: 0.5rem;
+      overflow: hidden;
+    }
+    .strength-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: all 0.3s;
+      width: 0%;
+    }
+    /* Lock overlay */
+    #lockOverlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15,23,42,0.97);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 8888;
+    }
+    #lockOverlay.active { display: flex; }
+    /* Inactivity timeout selector */
+    .timeout-select {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.5rem;
+    }
+    .timeout-btn {
+      padding: 0.4rem 0.9rem;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--white);
+      color: var(--text);
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .timeout-btn.active {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: white;
+    }
+    /* Header lock indicator */
+    .lock-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .lock-indicator:hover { background: rgba(255,255,255,0.35); }
+
   </style>
 </head>
 <body>
-  <div class="app-container">
+  <!-- ═══════════════════════════════════════════════════════
+       ÉCRAN DE CONNEXION — SÉCURITÉ FINALE28
+       ═══════════════════════════════════════════════════════ -->
+  <div id="loginScreen">
+    <div class="login-card">
+      <div class="login-logo">🌾</div>
+      <div class="login-title">SEN-BUUR AGRO-TECH</div>
+      <div class="login-subtitle" id="loginSubtitle">Entrez votre mot de passe pour accéder</div>
+
+      <!-- ÉTAPE 1 : Connexion normale -->
+      <div class="setup-step active" id="stepLogin">
+        <div class="login-input-wrap">
+          <input type="password" class="login-input" id="loginPassword"
+                 placeholder="••••••••"
+                 onkeydown="if(event.key==='Enter') tryLogin()"
+                 oninput="clearLoginError()">
+          <button class="login-eye" onclick="toggleLoginVisibility()" tabindex="-1" title="Afficher/Masquer">👁️</button>
+        </div>
+        <button class="login-btn" id="loginBtn" onclick="tryLogin()">
+          🔓 Accéder à l'application
+        </button>
+        <div class="login-attempts" id="loginAttempts">
+          <div class="attempt-dot" id="dot1"></div>
+          <div class="attempt-dot" id="dot2"></div>
+          <div class="attempt-dot" id="dot3"></div>
+        </div>
+        <div class="login-error" id="loginError"></div>
+        <div class="login-footer">🔒 Données protégées · SEN-BUUR AGRO-TECH v28</div>
+      </div>
+
+      <!-- ÉTAPE 2 : Première configuration -->
+      <div class="setup-step" id="stepSetup">
+        <div style="background:#dbeafe;border-radius:0.75rem;padding:1rem;margin-bottom:1.25rem;font-size:0.875rem;color:#1e40af;text-align:left;">
+          ℹ️ <strong>Première connexion</strong> — Créez votre mot de passe pour sécuriser l'application.
+        </div>
+        <div class="login-input-wrap">
+          <input type="password" class="login-input" id="setupPwd1"
+                 placeholder="Nouveau mot de passe"
+                 oninput="checkStrength()">
+        </div>
+        <div class="strength-bar">
+          <div class="strength-fill" id="strengthFill"></div>
+        </div>
+        <div style="font-size:0.75rem;color:#6b7280;margin:0.4rem 0 0.75rem;text-align:left;" id="strengthLabel"></div>
+        <div class="login-input-wrap">
+          <input type="password" class="login-input" id="setupPwd2"
+                 placeholder="Confirmer le mot de passe"
+                 onkeydown="if(event.key==='Enter') createPassword()">
+        </div>
+        <button class="login-btn" onclick="createPassword()">
+          ✅ Créer mon mot de passe
+        </button>
+        <div class="login-error" id="setupError"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OVERLAY DE VERROUILLAGE (inactivité) -->
+  <div id="lockOverlay">
+    <div class="login-card">
+      <div style="font-size:3rem;margin-bottom:0.5rem;">🔒</div>
+      <div class="login-title">Application verrouillée</div>
+      <div class="login-subtitle">Verrouillage automatique par inactivité</div>
+      <div class="login-input-wrap" style="margin-top:1rem;">
+        <input type="password" class="login-input" id="unlockPassword"
+               placeholder="••••••••"
+               onkeydown="if(event.key==='Enter') tryUnlock()">
+        <button class="login-eye" onclick="toggleUnlockVisibility()" tabindex="-1">👁️</button>
+      </div>
+      <button class="login-btn" onclick="tryUnlock()">🔓 Déverrouiller</button>
+      <div class="login-error" id="unlockError"></div>
+    </div>
+  </div>
+
+  <div class="app-container" id="appContainer" style="display:none;">
     <header class="app-header">
       <div>
         <h1 class="app-title">🌾 SEN-BUUR AGRO-TECH</h1>
         <p style="font-size: 0.875rem; opacity: 0.9;">Gestion complète des ventes</p>
       </div>
-      <button class="btn btn-sm" onclick="toggleDarkMode()" style="background: rgba(255,255,255,0.2);">
-        🌓 Mode
-      </button>
+      <div style="display:flex;gap:0.5rem;align-items:center;">
+        <button class="lock-indicator" id="driveHeaderStatus" title="Statut Drive">☁️ Drive</button>
+        <button class="lock-indicator" onclick="manualLock()" title="Verrouiller l'application">🔒 Verrouiller</button>
+        <button class="btn btn-sm" onclick="toggleDarkMode()" style="background: rgba(255,255,255,0.2);">🌓 Mode</button>
+      </div>
     </header>
 
     <nav class="nav-tabs">
@@ -1866,9 +2144,18 @@
           </label>
         </div>
         <div class="form-group">
-          <label class="form-label">Code PIN (sécurité)</label>
-          <input type="password" class="form-input" id="pinInput" placeholder="Définir un PIN">
-          <button class="btn btn-sm" onclick="setEncryptionKey()" style="margin-top: 0.5rem;">🔒 Enregistrer PIN</button>
+          <label class="form-label">🔑 Changer le mot de passe</label>
+          <input type="password" class="form-input" id="pinInput" placeholder="Nouveau mot de passe">
+          <button class="btn btn-sm" onclick="changeAppPassword()" style="margin-top: 0.5rem;">🔒 Changer le mot de passe</button>
+        </div>
+        <div class="form-group">
+          <label class="form-label">⏱️ Verrouillage automatique après</label>
+          <div class="timeout-select" id="timeoutSelector">
+            <button class="timeout-btn" onclick="setLockTimeout(5)"  id="to-5">5 min</button>
+            <button class="timeout-btn active" onclick="setLockTimeout(10)" id="to-10">10 min</button>
+            <button class="timeout-btn" onclick="setLockTimeout(30)" id="to-30">30 min</button>
+            <button class="timeout-btn" onclick="setLockTimeout(0)"  id="to-0">Jamais</button>
+          </div>
         </div>
       </div>
       <div class="form-grid" style="margin-top: 1.5rem;">
@@ -1928,6 +2215,332 @@
   <script src="https://accounts.google.com/gsi/client" async defer onload="gisLoaded()"></script>
 
   <script>
+
+    // ╔══════════════════════════════════════════════════════════════╗
+    // ║  SÉCURITÉ FINALE28 — 4 niveaux de protection               ║
+    // ║  Niveau 1 : Écran de connexion + hachage SHA-256            ║
+    // ║  Niveau 2 : Verrouillage automatique par inactivité         ║
+    // ║  Niveau 3 : Chiffrement AES complet des données localStorage ║
+    // ║  (Niveau 4 : Guide restriction clé API → voir README)       ║
+    // ╚══════════════════════════════════════════════════════════════╝
+
+    const SEC = {
+      HASH_KEY:      'sbat_auth_hash',
+      ATTEMPTS_KEY:  'sbat_lock_attempts',
+      LOCK_UNTIL:    'sbat_lock_until',
+      TIMEOUT_KEY:   'sbat_lock_timeout',
+      SECURE_DATA:   'sbat_secure_data',     // données chiffrées
+      LAST_ACTIVE:   'sbat_last_active',
+    };
+
+    let sessionKey    = '';   // clé AES dérivée du mot de passe (session mémoire uniquement)
+    let lockTimeout   = parseInt(localStorage.getItem(SEC.TIMEOUT_KEY) || '10', 10);
+    let inactivityInt = null;
+
+    // ── Hashage ──────────────────────────────────────────────────────
+    const hashPwd = (pwd) => CryptoJS.SHA256(pwd).toString(CryptoJS.enc.Hex);
+
+    // ── Chiffrement / Déchiffrement AES des données ──────────────────
+    const encryptData = (data, key) => {
+      try {
+        return 'sec:' + CryptoJS.AES.encrypt(JSON.stringify(data), key).toString();
+      } catch(e) { return null; }
+    };
+
+    const decryptData = (blob, key) => {
+      try {
+        if (!blob || !String(blob).startsWith('sec:')) return null;
+        const bytes = CryptoJS.AES.decrypt(blob.slice(4), key);
+        return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+      } catch(e) { return null; }
+    };
+
+    // ── Vérification première utilisation ────────────────────────────
+    const isFirstRun = () => !localStorage.getItem(SEC.HASH_KEY);
+
+    // ── Initialisation de l'écran de sécurité ────────────────────────
+    const initSecurity = () => {
+      if (isFirstRun()) {
+        // Première utilisation → écran de création de mot de passe
+        document.getElementById('stepLogin').classList.remove('active');
+        document.getElementById('stepSetup').classList.add('active');
+        document.getElementById('loginSubtitle').textContent = 'Créez votre mot de passe de sécurité';
+      } else {
+        // Connexion normale
+        document.getElementById('stepLogin').classList.add('active');
+        document.getElementById('stepSetup').classList.remove('active');
+        document.getElementById('loginSubtitle').textContent = 'Entrez votre mot de passe pour accéder';
+      }
+      document.getElementById('loginScreen').style.display = 'flex';
+      document.getElementById('appContainer').style.display = 'none';
+      setTimeout(() => {
+        const el = document.getElementById('loginPassword') || document.getElementById('setupPwd1');
+        if (el) el.focus();
+      }, 300);
+    };
+
+    // ── Vérificateur de force du mot de passe ────────────────────────
+    const checkStrength = () => {
+      const pwd = document.getElementById('setupPwd1').value;
+      const fill  = document.getElementById('strengthFill');
+      const label = document.getElementById('strengthLabel');
+      let score = 0;
+      if (pwd.length >= 6)  score++;
+      if (pwd.length >= 10) score++;
+      if (/[A-Z]/.test(pwd)) score++;
+      if (/[0-9]/.test(pwd)) score++;
+      if (/[^A-Za-z0-9]/.test(pwd)) score++;
+      const colors = ['#dc2626','#f59e0b','#f59e0b','#15803d','#15803d'];
+      const labels = ['Très faible','Faible','Moyen','Fort','Très fort'];
+      const widths = ['20%','40%','60%','80%','100%'];
+      fill.style.background = colors[score - 1] || '#e5e7eb';
+      fill.style.width      = widths[score - 1] || '0%';
+      label.textContent     = score > 0 ? labels[score - 1] : '';
+      label.style.color     = colors[score - 1] || '#6b7280';
+    };
+
+    // ── Création du mot de passe (première fois) ─────────────────────
+    const createPassword = () => {
+      const p1  = document.getElementById('setupPwd1').value;
+      const p2  = document.getElementById('setupPwd2').value;
+      const err = document.getElementById('setupError');
+      if (p1.length < 4) {
+        showSecError(err, 'Le mot de passe doit contenir au moins 4 caractères.');
+        return;
+      }
+      if (p1 !== p2) {
+        showSecError(err, 'Les mots de passe ne correspondent pas.');
+        return;
+      }
+      // Stocker le hash (jamais le mot de passe en clair)
+      localStorage.setItem(SEC.HASH_KEY, hashPwd(p1));
+      sessionKey = p1;
+      // Chiffrer les données existantes avec le nouveau mot de passe
+      encryptAndSaveAll();
+      unlockApp();
+      showToast('✅ Mot de passe créé — Application sécurisée !');
+    };
+
+    // ── Tentative de connexion ───────────────────────────────────────
+    const tryLogin = () => {
+      const lockUntil = parseInt(localStorage.getItem(SEC.LOCK_UNTIL) || '0', 10);
+      if (Date.now() < lockUntil) {
+        const mins = Math.ceil((lockUntil - Date.now()) / 60000);
+        showLoginError('⏳ Bloqué ' + mins + ' min. Trop de tentatives.');
+        return;
+      }
+      const pwd  = document.getElementById('loginPassword').value;
+      const hash = hashPwd(pwd);
+      const stored = localStorage.getItem(SEC.HASH_KEY);
+      if (hash === stored) {
+        // ✅ Succès
+        sessionKey = pwd;
+        localStorage.removeItem(SEC.ATTEMPTS_KEY);
+        localStorage.removeItem(SEC.LOCK_UNTIL);
+        // Charger et déchiffrer les données
+        loadSecureData(pwd);
+        unlockApp();
+      } else {
+        // ❌ Échec
+        let attempts = parseInt(localStorage.getItem(SEC.ATTEMPTS_KEY) || '0', 10) + 1;
+        localStorage.setItem(SEC.ATTEMPTS_KEY, String(attempts));
+        updateAttemptDots(attempts);
+        if (attempts >= 3) {
+          const until = Date.now() + 5 * 60 * 1000;
+          localStorage.setItem(SEC.LOCK_UNTIL, String(until));
+          localStorage.removeItem(SEC.ATTEMPTS_KEY);
+          showLoginError('🚫 3 tentatives échouées — Bloqué 5 minutes');
+          document.getElementById('loginBtn').disabled = true;
+          setTimeout(() => {
+            document.getElementById('loginBtn').disabled = false;
+            clearLoginError();
+          }, 5 * 60 * 1000);
+        } else {
+          showLoginError('❌ Mot de passe incorrect — ' + (3 - attempts) + ' tentative(s) restante(s)');
+        }
+        document.getElementById('loginPassword').value = '';
+        document.getElementById('loginPassword').focus();
+      }
+    };
+
+    // ── Tentative de déverrouillage (overlay inactivité) ────────────
+    const tryUnlock = () => {
+      const pwd  = document.getElementById('unlockPassword').value;
+      const hash = hashPwd(pwd);
+      if (hash === localStorage.getItem(SEC.HASH_KEY)) {
+        sessionKey = pwd;
+        document.getElementById('lockOverlay').classList.remove('active');
+        document.getElementById('unlockPassword').value = '';
+        document.getElementById('unlockError').classList.remove('visible');
+        resetInactivityTimer();
+        showToast('✅ Application déverrouillée');
+      } else {
+        showSecError(document.getElementById('unlockError'), '❌ Mot de passe incorrect');
+        document.getElementById('unlockPassword').value = '';
+      }
+    };
+
+    // ── Ouvrir l'application après connexion réussie ─────────────────
+    const unlockApp = () => {
+      document.getElementById('loginScreen').style.display  = 'none';
+      document.getElementById('lockOverlay').classList.remove('active');
+      document.getElementById('appContainer').style.display = 'block';
+      resetInactivityTimer();
+      // Initialiser l'app normalement
+      appInit();
+    };
+
+    // ── Verrouillage manuel ──────────────────────────────────────────
+    const manualLock = () => {
+      sessionKey = '';
+      clearInterval(inactivityInt);
+      document.getElementById('lockOverlay').classList.add('active');
+      document.getElementById('unlockPassword').value = '';
+      setTimeout(() => document.getElementById('unlockPassword').focus(), 200);
+    };
+
+    // ── Verrouillage automatique par inactivité ──────────────────────
+    const resetInactivityTimer = () => {
+      localStorage.setItem(SEC.LAST_ACTIVE, String(Date.now()));
+      clearInterval(inactivityInt);
+      if (lockTimeout === 0) return; // "Jamais"
+      inactivityInt = setInterval(() => {
+        const last  = parseInt(localStorage.getItem(SEC.LAST_ACTIVE) || '0', 10);
+        const idle  = (Date.now() - last) / 60000; // minutes
+        if (idle >= lockTimeout) {
+          clearInterval(inactivityInt);
+          manualLock();
+        }
+      }, 30000); // vérifie toutes les 30 secondes
+    };
+
+    // Réinitialiser le timer sur toute activité utilisateur
+    ['click','mousemove','keydown','touchstart','scroll'].forEach(evt =>
+      document.addEventListener(evt, () => {
+        if (sessionKey) localStorage.setItem(SEC.LAST_ACTIVE, String(Date.now()));
+      }, { passive: true })
+    );
+
+    // Verrouillage si l'onglet perd le focus (optionnel, commenté par défaut)
+    // document.addEventListener('visibilitychange', () => {
+    //   if (document.hidden && sessionKey) manualLock();
+    // });
+
+    // ── Changement de timeout ────────────────────────────────────────
+    const setLockTimeout = (mins) => {
+      lockTimeout = mins;
+      localStorage.setItem(SEC.TIMEOUT_KEY, String(mins));
+      [5,10,30,0].forEach(m => {
+        const btn = document.getElementById('to-' + m);
+        if (btn) btn.classList.toggle('active', m === mins);
+      });
+      resetInactivityTimer();
+      const label = mins === 0 ? 'Verrouillage automatique désactivé' : 'Verrouillage après ' + mins + ' min d'inactivité';
+      showToast('⏱️ ' + label);
+    };
+
+    // ── Changer le mot de passe depuis Options ───────────────────────
+    const changeAppPassword = () => {
+      const newPwd = document.getElementById('pinInput').value.trim();
+      if (!newPwd || newPwd.length < 4) {
+        showToast('Le mot de passe doit faire au moins 4 caractères', 'error');
+        return;
+      }
+      // Re-chiffrer toutes les données avec le nouveau mot de passe
+      const oldKey = sessionKey;
+      sessionKey = newPwd;
+      localStorage.setItem(SEC.HASH_KEY, hashPwd(newPwd));
+      encryptAndSaveAll();
+      document.getElementById('pinInput').value = '';
+      showToast('🔑 Mot de passe changé avec succès');
+    };
+
+    // ── Chiffrement complet des données localStorage (Niveau 3) ──────
+    const encryptAndSaveAll = () => {
+      if (!sessionKey) return;
+      const payload = { clients, nextId, savedAt: Date.now() };
+      const encrypted = encryptData(payload, sessionKey);
+      if (encrypted) {
+        localStorage.setItem(SEC.SECURE_DATA, encrypted);
+        // Supprimer les données non chiffrées
+        localStorage.removeItem('sbat_clients');
+        localStorage.removeItem('sbat_nextId');
+      }
+    };
+
+    // ── Chargement et déchiffrement des données ───────────────────────
+    const loadSecureData = (key) => {
+      const blob = localStorage.getItem(SEC.SECURE_DATA);
+      if (blob) {
+        // Données chiffrées (nouveau format FINAL28+)
+        const data = decryptData(blob, key);
+        if (data && Array.isArray(data.clients)) {
+          clients = data.clients;
+          nextId  = data.nextId || (clients.length + 1);
+          if (data.savedAt) localStorage.setItem('sbat_lastSave', String(data.savedAt));
+          return;
+        }
+      }
+      // Fallback : données non chiffrées (migration depuis versions antérieures)
+      const raw = localStorage.getItem('sbat_clients');
+      if (raw) {
+        try {
+          clients = JSON.parse(raw);
+          nextId  = parseInt(localStorage.getItem('sbat_nextId') || '1', 10);
+          // Migrer vers le format chiffré immédiatement
+          encryptAndSaveAll();
+          localStorage.removeItem('sbat_clients');
+          localStorage.removeItem('sbat_nextId');
+        } catch(e) { clients = []; nextId = 1; }
+      }
+    };
+
+    // ── Helpers d'affichage d'erreurs ────────────────────────────────
+    const showLoginError = (msg) => {
+      const el = document.getElementById('loginError');
+      el.textContent = msg;
+      el.classList.add('visible');
+    };
+
+    const clearLoginError = () => {
+      const el = document.getElementById('loginError');
+      if (el) { el.textContent = ''; el.classList.remove('visible'); }
+    };
+
+    const showSecError = (el, msg) => {
+      el.textContent = msg;
+      el.classList.add('visible');
+      setTimeout(() => el.classList.remove('visible'), 4000);
+    };
+
+    const updateAttemptDots = (used) => {
+      [1,2,3].forEach(i => {
+        const dot = document.getElementById('dot' + i);
+        if (dot) dot.classList.toggle('used', i <= used);
+      });
+    };
+
+    const toggleLoginVisibility = () => {
+      const inp = document.getElementById('loginPassword');
+      inp.type  = inp.type === 'password' ? 'text' : 'password';
+    };
+
+    const toggleUnlockVisibility = () => {
+      const inp = document.getElementById('unlockPassword');
+      inp.type  = inp.type === 'password' ? 'text' : 'password';
+    };
+
+    // Initialiser le bon bouton de timeout au chargement
+    const initTimeoutButtons = () => {
+      const saved = parseInt(localStorage.getItem(SEC.TIMEOUT_KEY) || '10', 10);
+      lockTimeout = saved;
+      [5,10,30,0].forEach(m => {
+        const btn = document.getElementById('to-' + m);
+        if (btn) btn.classList.toggle('active', m === saved);
+      });
+    };
+
+
     let clients = JSON.parse(localStorage.getItem('sbat_clients') || '[]');
     let nextId = parseInt(localStorage.getItem('sbat_nextId') || '1', 10);
     let encryptionKey = localStorage.getItem('sbat_enc_key') || '';
@@ -2205,6 +2818,8 @@
           renderClients();
           renderClientsSoldes();
           filterClients();
+          // Re-chiffrer localement avec la clé de session courante
+          if (sessionKey) encryptAndSaveAll();
           const heure = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
           updateDriveStatus('🟢 Restauré à ' + heure);
         } else {
@@ -2217,13 +2832,19 @@
     }
 
     /**
-     * Sauvegarde locale PUIS Drive automatiquement à chaque modification.
+     * Sauvegarde locale CHIFFRÉE (Niveau 3) + Drive automatiquement.
+     * Les données sont toujours chiffrées avant d'être écrites dans localStorage.
      */
     const save = () => {
-      const now = Date.now();
-      localStorage.setItem('sbat_clients',  JSON.stringify(clients));
-      localStorage.setItem('sbat_nextId',   String(nextId));
-      localStorage.setItem('sbat_lastSave', String(now));
+      if (sessionKey) {
+        // Niveau 3 : chiffrement AES complet
+        encryptAndSaveAll();
+      } else {
+        // Fallback sans clé (ne devrait pas arriver en fonctionnement normal)
+        localStorage.setItem('sbat_clients',  JSON.stringify(clients));
+        localStorage.setItem('sbat_nextId',   String(nextId));
+      }
+      localStorage.setItem('sbat_lastSave', String(Date.now()));
       if (driveConnected && gapi.client.getToken()) {
         backupToDrive();
       }
@@ -3857,7 +4478,209 @@
             body { margin: 0; padding: 0; background: white; }
             .facture { display: block !important; }
             .action-buttons-modern, .form-grid, .form-group, h2, #logoUpload { display: none !important; }
-          </style>
+        
+    /* ═══════════════════════════════════════════════
+       SÉCURITÉ — FINAL28 : Écran de connexion
+       ═══════════════════════════════════════════════ */
+    #loginScreen {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1e40af 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .login-card {
+      background: white;
+      border-radius: 1.5rem;
+      padding: 2.5rem 2rem;
+      max-width: 400px;
+      width: 92%;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+      text-align: center;
+      animation: loginFadeIn 0.5s ease;
+    }
+    @keyframes loginFadeIn {
+      from { opacity: 0; transform: translateY(-30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .login-logo {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+    }
+    .login-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #1e40af;
+      margin-bottom: 0.25rem;
+    }
+    .login-subtitle {
+      font-size: 0.85rem;
+      color: #6b7280;
+      margin-bottom: 1.75rem;
+    }
+    .login-input-wrap {
+      position: relative;
+      margin-bottom: 1rem;
+    }
+    .login-input {
+      width: 100%;
+      padding: 0.875rem 3rem 0.875rem 1rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 0.75rem;
+      font-size: 1.1rem;
+      letter-spacing: 0.15em;
+      text-align: center;
+      transition: all 0.2s;
+      background: #f9fafb;
+    }
+    .login-input:focus {
+      outline: none;
+      border-color: #1e40af;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(30,64,175,0.1);
+    }
+    .login-eye {
+      position: absolute;
+      right: 0.875rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.1rem;
+      color: #9ca3af;
+      padding: 0;
+    }
+    .login-btn {
+      width: 100%;
+      padding: 0.875rem;
+      background: linear-gradient(135deg, #1e40af, #3b82f6);
+      color: white;
+      border: none;
+      border-radius: 0.75rem;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 0.75rem;
+      box-shadow: 0 4px 12px rgba(30,64,175,0.3);
+    }
+    .login-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(30,64,175,0.4);
+    }
+    .login-btn:active { transform: translateY(0); }
+    .login-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .login-error {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      margin-top: 0.75rem;
+      display: none;
+      animation: shake 0.4s ease;
+    }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25%      { transform: translateX(-8px); }
+      75%      { transform: translateX(8px); }
+    }
+    .login-error.visible { display: block; }
+    .login-attempts {
+      display: flex;
+      justify-content: center;
+      gap: 0.4rem;
+      margin-top: 1rem;
+    }
+    .attempt-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #e5e7eb;
+      transition: background 0.2s;
+    }
+    .attempt-dot.used { background: #dc2626; }
+    .login-footer {
+      margin-top: 1.5rem;
+      font-size: 0.75rem;
+      color: #9ca3af;
+    }
+    /* Setup screen */
+    .setup-step {
+      display: none;
+    }
+    .setup-step.active { display: block; }
+    .strength-bar {
+      height: 4px;
+      background: #e5e7eb;
+      border-radius: 2px;
+      margin-top: 0.5rem;
+      overflow: hidden;
+    }
+    .strength-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: all 0.3s;
+      width: 0%;
+    }
+    /* Lock overlay */
+    #lockOverlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15,23,42,0.97);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 8888;
+    }
+    #lockOverlay.active { display: flex; }
+    /* Inactivity timeout selector */
+    .timeout-select {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.5rem;
+    }
+    .timeout-btn {
+      padding: 0.4rem 0.9rem;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--white);
+      color: var(--text);
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .timeout-btn.active {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: white;
+    }
+    /* Header lock indicator */
+    .lock-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .lock-indicator:hover { background: rgba(255,255,255,0.35); }
+
+  </style>
         </head>
         <body>
           ${factureHtml}
@@ -3979,24 +4802,8 @@
       document.getElementById('darkToggle').checked = isDark;
     };
 
-    const setEncryptionKey = () => {
-      const pin = document.getElementById('pinInput').value.trim();
-      if (!pin) {
-        encryptionKey = '';
-        localStorage.removeItem('sbat_enc_key');
-        clients.forEach(c => c.tel = revealField(c.tel));
-        save();
-        showToast('PIN supprimé');
-        renderClients();
-        return;
-      }
-      encryptionKey = pin;
-      localStorage.setItem('sbat_enc_key', encryptionKey);
-      clients.forEach(c => c.tel = secureField(revealField(c.tel)));
-      save();
-      showToast('PIN enregistré');
-      renderClients();
-    };
+    // setEncryptionKey() remplacé par changeAppPassword() dans FINAL28
+    const setEncryptionKey = () => changeAppPassword();
 
     const exportBackup = () => {
       const data = { clients, nextId };
@@ -4142,7 +4949,23 @@
       }
     };
 
-    window.addEventListener('load', init);
+    // appInit() est appelé APRÈS connexion réussie (déclenchée par unlockApp())
+    const appInit = () => {
+      init();
+      initTimeoutButtons();
+      // Mettre à jour le badge Drive dans le header
+      const badge = document.getElementById('driveHeaderStatus');
+      if (badge) badge.textContent = '☁️ Drive';
+    };
+
+    // Bootstrap : afficher l'écran de sécurité au chargement
+    window.addEventListener('load', () => {
+      // Charger les données brutes en mémoire AVANT l'écran de login
+      // (nécessaire pour que init() fonctionne après déchiffrement)
+      clients = [];
+      nextId  = parseInt(localStorage.getItem('sbat_nextId') || '1', 10);
+      initSecurity();
+    });
   </script>
 
   <!-- Modal de paiement des échéances -->
