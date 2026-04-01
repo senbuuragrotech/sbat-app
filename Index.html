@@ -1,0 +1,4076 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SEN-BUUR AGRO-TECH - Gestion Complète</title>
+  
+  <!-- Bibliothèques externes -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  
+  <style>
+    :root {
+      /* Couleurs principales modernisées : palette neutre avec accent bleu. */
+      --primary: #1e40af;         /* bleu profond pour les boutons et éléments actifs */
+      --primary-dark: #1e3a8a;     /* variante sombre pour les survols */
+      --secondary: #3b82f6;        /* bleu clair pour les arrière‑plans subtilement colorés */
+      --success: #15803d;          /* vert foncé, cohérent avec une palette plus sobre */
+      --warning: #f59e0b;          /* orange pour les avertissements */
+      --danger: #dc2626;           /* rouge vif pour les erreurs */
+      --white: #ffffff;            /* blanc pur pour les cartes et formulaires */
+      --light: #f9fafb;            /* gris très clair pour le fond général */
+      --border: #e5e7eb;           /* gris clair pour les bordures */
+      --text: #0f172a;             /* bleu‑noir lisible pour le texte principal */
+      --text-secondary: #6b7280;    /* gris moyen pour le texte secondaire */
+      --shadow: 0 4px 10px -3px rgba(0,0,0,0.1); /* ombre adoucie pour les cartes */
+      --radius: 0.75rem;
+    }
+
+    body.dark {
+      --white: #1f2937;
+      --light: #374151;
+      --border: #4b5563;
+      --text: #e5e7eb;
+      --text-secondary: #9ca3af;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      /* Fond général neutre pour une apparence plus professionnelle */
+      background: var(--light);
+      min-height: 100vh;
+      color: var(--text);
+      transition: all 0.3s;
+    }
+
+    body.dark {
+      /* Mode sombre avec dégradé subtil basé sur les nouvelles couleurs */
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+    }
+
+    .app-container {
+      max-width: 1400px;
+      margin: 20px auto;
+      background: var(--white);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      min-height: calc(100vh - 40px);
+    }
+
+    .app-header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 1.5rem;
+      border-radius: 20px 20px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .app-title { font-size: 1.5rem; font-weight: 700; }
+
+    .nav-tabs {
+      display: flex;
+      overflow-x: auto;
+      background: var(--light);
+      scrollbar-width: none;
+    }
+
+    .nav-tabs::-webkit-scrollbar { display: none; }
+
+    .tab-btn {
+      flex: 0 0 auto;
+      padding: 1rem 1.25rem;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      white-space: nowrap;
+      position: relative;
+    }
+
+    .tab-btn.active {
+      color: var(--primary);
+      background: var(--white);
+    }
+
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--primary);
+    }
+
+    .tab-content { display: none; padding: 1.5rem; }
+    .tab-content.active { display: block; animation: fadeIn 0.3s; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      position: relative;
+    }
+
+    .form-label {
+      font-weight: 600;
+      font-size: 0.875rem;
+      color: var(--text);
+    }
+
+    .form-input, .form-select, .form-textarea {
+      padding: 0.75rem;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 1rem;
+      background: var(--white);
+      color: var(--text);
+      transition: all 0.3s;
+    }
+
+    .form-input:focus, .form-select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .autocomplete-suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 0 0 var(--radius) var(--radius);
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 1000;
+      box-shadow: var(--shadow);
+      display: none;
+    }
+
+    .autocomplete-suggestions.active { display: block; }
+
+    .autocomplete-item {
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-bottom: 1px solid var(--light);
+    }
+
+    .autocomplete-item:hover { background: var(--light); }
+    .autocomplete-item strong { color: var(--primary); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: var(--radius);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+    .btn-success { background: var(--success); }
+
+    /* Pagination */
+    .pagination-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      padding: 1rem 0 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .page-btn {
+      min-width: 2.2rem;
+      height: 2.2rem;
+      padding: 0 0.6rem;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--white);
+      color: var(--text);
+      font-weight: 600;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .page-btn:hover:not(:disabled) {
+      border-color: var(--primary);
+      color: var(--primary);
+      transform: translateY(-1px);
+    }
+
+    .page-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+
+    .page-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .page-ellipsis {
+      color: var(--text-secondary);
+      padding: 0 0.2rem;
+    }
+
+    .page-info {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-left: 0.5rem;
+    }
+    .btn-danger { background: var(--danger); }
+    .btn-secondary { background: var(--warning); }
+    .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+    .btn-sm { padding: 0.5rem 1rem; font-size: 0.8125rem; }
+
+    .product-entry {
+      display: grid;
+      grid-template-columns: 2fr 1.5fr 1fr 1fr 1fr auto;
+      gap: 0.75rem;
+      padding: 1rem;
+      background: var(--light);
+      border-radius: var(--radius);
+      margin-bottom: 0.75rem;
+    }
+
+    .table-container {
+      overflow-x: auto;
+      margin: 1rem 0;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--white);
+    }
+
+    .table th, .table td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .table th {
+      background: var(--light);
+      font-weight: 600;
+      font-size: 0.8125rem;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+    }
+
+    .badge {
+      display: inline-flex;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-success { background: #d1fae5; color: #065f46; }
+    .badge-danger { background: #fee2e2; color: #991b1b; }
+    .badge-warning { background: #fef3c7; color: #92400e; }
+    /* Responsive du bloc recherche/sélection dans Facturation */
+    @media (max-width: 768px) {
+      #facture > div[style*="grid-template-columns:1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+      }
+    }
+
+    /* Nouveau badge info pour statut partiel (bleu) */
+    .badge-info { background: #dbeafe; color: #1e40af; }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+
+    .kpi-card {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 1.5rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .kpi-value { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .kpi-label { font-size: 0.875rem; opacity: 0.9; }
+
+    .toast {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      background: var(--white);
+      padding: 1rem 1.5rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      z-index: 1000;
+      animation: slideIn 0.3s;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(400px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .toast.success { border-left: 4px solid var(--success); }
+    .toast.error { border-left: 4px solid var(--danger); }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+    }
+
+    .switch input { opacity: 0; width: 0; height: 0; }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #cbd5e1;
+      transition: 0.3s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider { background-color: var(--primary); }
+    input:checked + .slider:before { transform: translateX(26px); }
+
+    .facture {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      margin-top: 1.5rem;
+      position: relative;
+      box-shadow: var(--shadow);
+    }
+
+    .logo-section-inline {
+      width: 100px;
+      height: 100px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--light);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      flex-shrink: 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .logo-section-inline:hover {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.05);
+      transform: scale(1.05);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .logo-section-inline img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border-radius: calc(var(--radius) - 2px);
+    }
+
+    .logo-placeholder {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      line-height: 1.4;
+    }
+
+    .invoice-header-modern {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 2rem;
+      border-bottom: 3px solid;
+      border-image: linear-gradient(135deg, var(--primary), var(--secondary)) 1;
+      padding-bottom: 2rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .company-info-modern h2 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .company-details {
+      color: var(--text-secondary);
+      line-height: 1.8;
+      font-size: 0.95rem;
+    }
+
+    .invoice-meta-modern {
+      text-align: right;
+    }
+
+    .invoice-number {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .invoice-date {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+
+    .info-card-modern {
+      background: linear-gradient(135deg, var(--light), var(--white));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+    }
+
+    .info-card-modern:hover {
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .info-card-modern h4 {
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .info-card-content {
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    .table-modern {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 2rem 0;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .table-modern thead {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+    }
+
+    .table-modern th {
+      padding: 1.25rem 1rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.875rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .table-modern tbody tr {
+      background: var(--white);
+      transition: background-color 0.2s ease;
+    }
+
+    .table-modern tbody tr:nth-child(even) {
+      background: var(--light);
+    }
+
+    .table-modern tbody tr:hover {
+      background: rgba(99, 102, 241, 0.1);
+    }
+
+    .table-modern td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .totaux-modern {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .montant-lettres-modern {
+      background: linear-gradient(135deg, var(--light), #f9fafb);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+    }
+
+    .montant-lettres-modern h4 {
+      color: var(--text);
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .montant-lettres-text {
+      color: var(--text-secondary);
+      font-style: italic;
+      font-size: 1.05rem;
+      line-height: 1.6;
+    }
+
+    .resume-financier-modern {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(139, 92, 246, 0.05));
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+    }
+
+    .ligne-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .ligne-total:last-child {
+      border-bottom: 2px solid var(--primary);
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--primary);
+      margin-top: 0.5rem;
+    }
+
+    .invoice-phrase {
+      margin-top: 1.5rem;
+      font-style: italic;
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+
+    .footnote {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: var(--light);
+      border-radius: var(--radius);
+      line-height: 1.6;
+    }
+
+    .bottom-brand {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+      padding: 1rem;
+      border-top: 2px solid var(--border);
+    }
+
+    .engagement {
+      margin-top: 1.5rem;
+      padding: 1.5rem;
+      background: var(--light);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      line-height: 1.8;
+      display: none;
+    }
+
+    .engagement h4 {
+      margin-bottom: 1rem;
+      color: var(--text);
+      font-size: 1.1rem;
+    }
+
+    .action-buttons-modern {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-modern {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.875rem 1.5rem;
+      border: none;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-primary-modern {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      box-shadow: var(--shadow);
+    }
+
+    .btn-primary-modern:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-secondary-modern {
+      background: linear-gradient(135deg, var(--success), #34d399);
+      color: white;
+      box-shadow: var(--shadow);
+    }
+
+    .btn-secondary-modern:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+
+
+    /* Modal de paiement pour mobile */
+    .payment-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 2000;
+      overflow-y: auto;
+      padding: 1rem;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .payment-modal.active {
+      display: flex;
+    }
+
+    .payment-modal-content {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      max-width: 500px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+      animation: modalSlideIn 0.3s ease-out;
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .payment-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .payment-modal-header h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .payment-modal-close {
+      background: transparent;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-secondary);
+      padding: 0.5rem;
+      line-height: 1;
+      transition: all 0.2s;
+    }
+
+    .payment-modal-close:hover {
+      color: var(--danger);
+      transform: scale(1.1);
+    }
+
+    .echeance-item {
+      background: var(--light);
+      border-radius: var(--radius);
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border: 2px solid var(--border);
+      transition: all 0.2s;
+    }
+
+    .echeance-item:hover {
+      border-color: var(--primary);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .echeance-item.paid {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: var(--success);
+    }
+
+    .echeance-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .echeance-title {
+      font-weight: 600;
+      color: var(--text);
+      font-size: 1rem;
+    }
+
+    .echeance-info {
+      display: grid;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    .echeance-info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .echeance-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-pay {
+      flex: 1;
+      min-width: 120px;
+      padding: 0.75rem 1rem;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .btn-pay:disabled {
+      background: var(--border);
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    .btn-pay:not(:disabled):hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .payment-form {
+      display: none;
+      background: var(--white);
+      border: 2px solid var(--primary);
+      border-radius: var(--radius);
+      padding: 1rem;
+      margin-top: 0.75rem;
+      animation: slideDown 0.3s ease-out;
+    }
+
+    .payment-form.active {
+      display: block;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        max-height: 0;
+      }
+      to {
+        opacity: 1;
+        max-height: 500px;
+      }
+    }
+
+    .payment-form-group {
+      margin-bottom: 1rem;
+    }
+
+    .payment-form-label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.875rem;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+
+    .payment-form-input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 1rem;
+      background: var(--white);
+      color: var(--text);
+      transition: all 0.2s;
+    }
+
+    .payment-form-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .payment-form-buttons {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .btn-validate {
+      flex: 1;
+      padding: 0.75rem;
+      background: var(--success);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-validate:hover {
+      background: #059669;
+      transform: translateY(-2px);
+    }
+
+    .btn-cancel {
+      flex: 1;
+      padding: 0.75rem;
+      background: var(--danger);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-cancel:hover {
+      background: #dc2626;
+      transform: translateY(-2px);
+    }
+
+    .client-summary {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 1rem;
+      border-radius: var(--radius);
+      margin-bottom: 1.5rem;
+    }
+
+    .client-summary-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+
+    .client-summary-row:last-child {
+      margin-bottom: 0;
+      padding-top: 0.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.3);
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    /* Amélioration du tableau clients pour mobile */
+    @media (max-width: 768px) {
+      .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .table {
+        min-width: 800px;
+        font-size: 0.75rem;
+      }
+
+      .table th,
+      .table td {
+        padding: 0.5rem 0.25rem;
+        white-space: nowrap;
+      }
+
+      .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+      }
+    }
+
+    /* Media Queries pour Mobile - Amélioration Responsive */
+    @media (max-width: 768px) {
+      .app-container {
+        margin: 10px;
+        border-radius: 10px;
+        min-height: calc(100vh - 20px);
+      }
+
+      .app-header {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+      }
+
+      .app-title {
+        font-size: 1.2rem;
+        text-align: center;
+      }
+
+      .nav-tabs {
+        overflow-x: scroll;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .tab-btn {
+        font-size: 0.8rem;
+        padding: 0.75rem 1rem;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr !important;
+        gap: 0.75rem;
+      }
+
+      .product-entry {
+        grid-template-columns: 1fr !important;
+        gap: 0.5rem;
+        padding: 0.75rem;
+      }
+
+      .echeance-entry {
+        grid-template-columns: 1fr 1fr auto !important;
+        gap: 0.5rem;
+      }
+
+      .table-container {
+        font-size: 0.8rem;
+      }
+
+      .table th, .table td {
+        padding: 0.5rem;
+        font-size: 0.75rem;
+      }
+
+      .kpi-grid {
+        grid-template-columns: 1fr !important;
+      }
+
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .toast {
+        left: 10px;
+        right: 10px;
+        top: 10px;
+      }
+
+      .autocomplete-suggestions {
+        font-size: 0.875rem;
+      }
+
+      .invoice-header-modern {
+        grid-template-columns: 1fr !important;
+      }
+
+      .totaux-modern {
+        grid-template-columns: 1fr !important;
+      }
+    }
+
+    /* Style pour les échéances dynamiques */
+    .echeance-entry {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr auto;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      background: var(--light);
+      border-radius: var(--radius);
+      margin-bottom: 0.5rem;
+      align-items: end;
+    }
+
+    .echeances-container {
+      margin-top: 1rem;
+      display: none;
+    }
+
+    .echeances-container.active {
+      display: block;
+    }
+
+    @media print {
+      .nav-tabs, .btn, .app-header, .action-buttons-modern, .tab-btn, 
+      .form-grid, .form-group, #logoUpload, h2 { 
+        display: none !important; 
+      }
+      
+      body { 
+        background: white !important; 
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      
+      .app-container { 
+        box-shadow: none !important; 
+        margin: 0 !important;
+        background: white !important;
+        border-radius: 0 !important;
+      }
+      
+      .tab-content { 
+        display: block !important; 
+        padding: 0 !important;
+      }
+      
+      .facture { 
+        margin: 0 !important; 
+        padding: 1cm !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        border: none !important;
+        box-shadow: none !important;
+      }
+      
+      .logo-section-inline {
+        width: 60px !important;
+        height: 60px !important;
+        margin-right: 0.5cm !important;
+      }
+      
+      .logo-placeholder {
+        font-size: 0.5rem !important;
+      }
+      
+      .invoice-header-modern {
+        padding-bottom: 0.5cm !important;
+        margin-bottom: 0.5cm !important;
+        gap: 0.5cm !important;
+      }
+      
+      .company-info-modern h2 {
+        font-size: 1.2rem !important;
+        margin: 0 !important;
+      }
+      
+      .company-info-modern p {
+        font-size: 0.65rem !important;
+        line-height: 1.4 !important;
+        margin-top: 0.2rem !important;
+      }
+      
+      .invoice-number {
+        font-size: 1rem !important;
+        margin-bottom: 0.2rem !important;
+      }
+      
+      .invoice-date {
+        font-size: 0.7rem !important;
+      }
+      
+      .info-card-modern {
+        padding: 0.5cm !important;
+        margin-bottom: 0.3cm !important;
+        box-shadow: none !important;
+      }
+      
+      .info-card-modern h4 {
+        font-size: 0.85rem !important;
+        margin-bottom: 0.3rem !important;
+      }
+      
+      .info-card-content {
+        font-size: 0.75rem !important;
+        line-height: 1.3 !important;
+      }
+      
+      .table-modern {
+        margin: 0.5cm 0 !important;
+        box-shadow: none !important;
+      }
+      
+      .table-modern th, .table-modern td {
+        padding: 0.2cm !important;
+        font-size: 0.7rem !important;
+      }
+      
+      .table-modern th {
+        font-size: 0.65rem !important;
+      }
+      
+      .totaux-modern {
+        gap: 0.5cm !important;
+        margin-top: 0.5cm !important;
+      }
+      
+      .montant-lettres-modern, .resume-financier-modern {
+        padding: 0.4cm !important;
+      }
+      
+      .montant-lettres-modern h4 {
+        font-size: 0.75rem !important;
+        margin-bottom: 0.2rem !important;
+      }
+      
+      .montant-lettres-text {
+        font-size: 0.7rem !important;
+        line-height: 1.3 !important;
+      }
+      
+      .ligne-total {
+        padding: 0.15cm 0 !important;
+        font-size: 0.7rem !important;
+      }
+      
+      .ligne-total:last-child {
+        font-size: 0.8rem !important;
+        margin-top: 0.2cm !important;
+      }
+      
+      .invoice-phrase {
+        margin-top: 0.3cm !important;
+        font-size: 0.7rem !important;
+      }
+      
+      .footnote {
+        font-size: 0.6rem !important;
+        margin-top: 0.3cm !important;
+        padding: 0.3cm !important;
+        line-height: 1.2 !important;
+      }
+      
+      .bottom-brand {
+        margin-top: 0.3cm !important;
+        padding: 0.3cm !important;
+        font-size: 0.75rem !important;
+      }
+      
+      .bottom-brand span {
+        font-size: 0.65rem !important;
+      }
+      
+      .engagement {
+        margin-top: 0.5cm !important;
+        padding: 0.4cm !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+      
+      .engagement h4 {
+        font-size: 0.8rem !important;
+        margin-bottom: 0.3rem !important;
+      }
+      
+      .engagement div {
+        font-size: 0.7rem !important;
+        line-height: 1.4 !important;
+      }
+      
+      /* Styles d'impression pour le tableau des échéances */
+      #echeanceSummary {
+        margin-top: 0.4cm !important;
+        margin-bottom: 0.2cm !important;
+      }
+
+      #echeanceSummary .table-modern {
+        margin: 0 !important;
+        font-size: 0.65rem !important;
+        box-shadow: none !important;
+      }
+
+      #echeanceSummary .table-modern th,
+      #echeanceSummary .table-modern td {
+        padding: 0.15cm 0.2cm !important;
+        font-size: 0.65rem !important;
+      }
+
+      .badge-info {
+        background: #dbeafe !important;
+        color: #1e40af !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      
+      @page {
+        size: A4;
+        margin: 0.5cm;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div>
+        <h1 class="app-title">🌾 SEN-BUUR AGRO-TECH</h1>
+        <p style="font-size: 0.875rem; opacity: 0.9;">Gestion complète des ventes</p>
+      </div>
+      <button class="btn btn-sm" onclick="toggleDarkMode()" style="background: rgba(255,255,255,0.2);">
+        🌓 Mode
+      </button>
+    </header>
+
+    <nav class="nav-tabs">
+      <button class="tab-btn active" onclick="switchTab('vente')">📝 Vente</button>
+      <button class="tab-btn" onclick="switchTab('clients')">👥 Clients</button>
+      <button class="tab-btn" onclick="switchTab('clientsSoldes')">✅ Soldés</button>
+      <button class="tab-btn" onclick="switchTab('stats')">📊 Dashboard</button>
+      <button class="tab-btn" onclick="switchTab('rappels')">📞 Rappels</button>
+      <button class="tab-btn" onclick="switchTab('rapport')">🗓️ Rapport</button>
+      <button class="tab-btn" onclick="switchTab('facture')">🧾 Facture</button>
+      <button class="tab-btn" onclick="switchTab('analytics')">📈 Analytics</button>
+      <button class="tab-btn" onclick="switchTab('comm')">📱 Communication</button>
+      <button class="tab-btn" onclick="switchTab('options')">⚙️ Options</button>
+    </nav>
+
+    <!-- NOUVELLE VENTE -->
+    <div class="tab-content active" id="vente">
+      <h2>Enregistrer une vente</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Date de vente</label>
+          <input type="date" class="form-input" id="dateVente">
+        </div>
+        <div class="form-group autocomplete-container">
+          <label class="form-label">Nom du client *</label>
+          <input type="text" class="form-input" id="nomClient" placeholder="Prénom Nom" 
+                 oninput="showAutocompleteSuggestions('nomClient', 'nom')"
+                 onfocus="showAutocompleteSuggestions('nomClient', 'nom')"
+                 onblur="setTimeout(() => hideAutocompleteSuggestions('nomClient'), 200)">
+          <div id="nomClient-suggestions" class="autocomplete-suggestions"></div>
+        </div>
+        <div class="form-group autocomplete-container">
+          <label class="form-label">Téléphone *</label>
+          <input type="tel" class="form-input" id="telClient" placeholder="+221 77 123 45 67"
+                 oninput="showAutocompleteSuggestions('telClient', 'tel')"
+                 onfocus="showAutocompleteSuggestions('telClient', 'tel')"
+                 onblur="setTimeout(() => hideAutocompleteSuggestions('telClient'), 200)">
+          <div id="telClient-suggestions" class="autocomplete-suggestions"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Type de paiement</label>
+          <select class="form-select" id="typePaiement" onchange="togglePaymentFields()">
+            <option value="cash">Cash</option>
+            <option value="moratoire">Moratoire</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fournisseur (optionnel)</label>
+          <input type="text" class="form-input" id="fournisseur" placeholder="Nom du fournisseur">
+        </div>
+      </div>
+
+      <div id="productsContainer" style="margin-top: 1rem;"></div>
+      
+      <button class="btn btn-outline btn-sm" onclick="addProduit()" style="margin-top: 0.5rem;">
+        ➕ Ajouter un produit
+      </button>
+
+      <div class="form-grid" id="paymentFields">
+        <div class="form-group">
+          <label class="form-label">Acompte (FCFA)</label>
+          <input type="number" class="form-input" id="acompte" oninput="calcRest()">
+        </div>
+      </div>
+
+      <div class="echeances-container" id="echeancesContainer">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h3 style="font-size: 1rem; font-weight: 600;">Échéances de paiement</h3>
+          <button class="btn btn-outline btn-sm" onclick="addEcheance()" type="button">
+            ➕ Ajouter une échéance
+          </button>
+        </div>
+        <div id="echeancesList"></div>
+      </div>
+
+      <div class="form-grid" style="margin-top: 1rem;">
+        <div class="form-group">
+          <label class="form-label">N° Série / IMEI</label>
+          <input type="text" class="form-input" id="serial">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Garantie (mois)</label>
+          <input type="number" class="form-input" id="garantie" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Restant dû</label>
+          <input type="text" class="form-input" id="reste" readonly style="background: var(--light);">
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+        <button class="btn btn-success" onclick="saveSale()">💾 Enregistrer</button>
+        <button class="btn btn-outline" onclick="clearForm()">🧹 Vider</button>
+      </div>
+    </div>
+
+    <!-- CLIENTS -->
+    <div class="tab-content" id="clients">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2>Liste des clients</h2>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn btn-outline btn-sm" onclick="exportClients()">⬇️ CSV</button>
+          <button class="btn btn-outline btn-sm" onclick="exportClientsExcel()">⬇️ Excel</button>
+        </div>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 1rem; margin-bottom: 1.5rem; align-items: end;">
+        <div class="form-group" style="margin: 0;">
+          <label class="form-label">🔍 Rechercher un client</label>
+          <input type="text" class="form-input" id="searchClients" 
+                 placeholder="Nom, téléphone, produit..." 
+                 oninput="clientsPage=1; renderClients(true)">
+        </div>
+        <div class="form-group" style="margin: 0;">
+          <label class="form-label">Filtrer par segment</label>
+          <select class="form-select" id="filterSegment" onchange="clientsPage=1; renderClients(true)">
+            <option value="">Tous</option>
+            <option value="Bon">Bons payeurs</option>
+            <option value="Moyen">Payeurs moyens</option>
+            <option value="Mauvais">Mauvais payeurs</option>
+          </select>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="clearFilters()" style="height: fit-content;">
+          🔄 Réinitialiser
+        </button>
+      </div>
+      
+      <div style="background: var(--light); padding: 0.75rem 1rem; border-radius: var(--radius); margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+        <span id="clientsCount" style="font-weight: 600; color: var(--text-secondary);"></span>
+        <span id="clientsTotal" style="font-weight: 600; color: var(--primary);"></span>
+      </div>
+      
+      <div class="table-container">
+        <table class="table">
+          <thead>
+              <tr>
+              <th>Date</th>
+              <th>Client</th>
+              <th>Tél</th>
+              <th>Segment</th>
+              <th>Produit</th>
+              <!-- Regrouper toutes les échéances dans une seule colonne pour aligner avec le contenu rendu -->
+              <th>Échéances</th>
+              <th>Restant</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="clientsBody"></tbody>
+        </table>
+      </div>
+      <div id="clientsPagination"></div>
+    </div>
+    <div class="tab-content" id="clientsSoldes">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2>Clients soldés</h2>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn btn-outline btn-sm" onclick="exportClientsSoldes()">⬇️ CSV</button>
+          <button class="btn btn-outline btn-sm" onclick="exportClientsSoldesExcel()">⬇️ Excel</button>
+        </div>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 1rem; margin-bottom: 1.5rem; align-items: end;">
+        <div class="form-group" style="margin: 0;">
+          <label class="form-label">🔍 Rechercher un client</label>
+          <input type="text" class="form-input" id="searchClientsSoldes" 
+                 placeholder="Nom, téléphone, produit..." 
+                 oninput="clientsSoldesPage=1; renderClientsSoldes(true)">
+        </div>
+        <div class="form-group" style="margin: 0;">
+          <label class="form-label">Filtrer par segment</label>
+          <select class="form-select" id="filterSegmentSoldes" onchange="clientsSoldesPage=1; renderClientsSoldes(true)">
+            <option value="">Tous</option>
+            <option value="Bon">Bons payeurs</option>
+            <option value="Moyen">Payeurs moyens</option>
+            <option value="Mauvais">Mauvais payeurs</option>
+          </select>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="clearFiltersSoldes()" style="height: fit-content;">
+          🔄 Réinitialiser
+        </button>
+      </div>
+      
+      <div style="background: var(--light); padding: 0.75rem 1rem; border-radius: var(--radius); margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+        <span id="clientsSoldesCount" style="font-weight: 600; color: var(--text-secondary);"></span>
+        <span id="clientsSoldesTotal" style="font-weight: 600; color: var(--primary);"></span>
+      </div>
+      
+      <div class="table-container">
+        <table class="table">
+          <thead>
+              <tr>
+              <th>Date</th>
+              <th>Client</th>
+              <th>Tél</th>
+              <th>Segment</th>
+              <th>Produit</th>
+              <th>Échéances</th>
+              <th>Restant</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="clientsSoldesBody"></tbody>
+        </table>
+      </div>
+      <div id="clientsSoldesPagination"></div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="tab-content" id="stats">
+      <h2>Tableau de bord</h2>
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-value" id="kInv">0 FCFA</div>
+          <div class="kpi-label">Total investi</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-value" id="kCre">0 FCFA</div>
+          <div class="kpi-label">Créances</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-value" id="kBen">0 FCFA</div>
+          <div class="kpi-label">Bénéfices</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-value" id="kVte">0</div>
+          <div class="kpi-label">Nb ventes</div>
+        </div>
+      </div>
+      <div style="background: var(--white); padding: 1.5rem; border-radius: var(--radius); margin-top: 1rem;">
+        <h3 style="margin-bottom: 1rem;">Synthèse par catégorie</h3>
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Catégorie</th>
+                <th>#</th>
+                <th>Investi</th>
+                <th>CA</th>
+                <th>Bénéfices</th>
+                <th>Marge %</th>
+              </tr>
+            </thead>
+            <tbody id="statsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- #9 — Échéances de la semaine -->
+      <div style="background: var(--white); padding: 1.5rem; border-radius: var(--radius); margin-top: 1rem;">
+        <h3 style="margin-bottom: 1rem; display:flex; align-items:center; gap:0.5rem;">
+          📅 Échéances des 7 prochains jours
+          <span id="weekEcheancesBadge" style="background:var(--danger);color:white;font-size:0.75rem;padding:0.2rem 0.6rem;border-radius:9999px;font-weight:700;"></span>
+        </h3>
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Client</th>
+                <th>Produit</th>
+                <th>Date échéance</th>
+                <th>Montant dû</th>
+                <th>Jours restants</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="weekEcheancesBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- RAPPELS -->
+    <div class="tab-content" id="rappels">
+      <h2>Rappels & Relances</h2>
+      <div class="kpi-grid">
+        <div style="background: var(--white); padding: 1.5rem; border-radius: var(--radius);">
+          <div class="kpi-value" id="retardNb" style="color: var(--primary);">0</div>
+          <div class="kpi-label" style="color: var(--text-secondary);">Clients avec solde</div>
+        </div>
+        <div style="background: var(--white); padding: 1.5rem; border-radius: var(--radius);">
+          <div class="kpi-value" id="retardMontant" style="color: var(--danger);">0 FCFA</div>
+          <div class="kpi-label" style="color: var(--text-secondary);">Montant total dû</div>
+        </div>
+      </div>
+      <div style="margin: 1rem 0;">
+        <button class="btn btn-outline" onclick="copyNums()">📋 Copier tous les numéros</button>
+      </div>
+      <div class="table-container">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Tél</th>
+              <th>Produit</th>
+              <th>Solde</th>
+              <th>Jours</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="remindersBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RAPPORT MENSUEL -->
+    <div class="tab-content" id="rapport">
+      <h2>Rapport mensuel de paiements</h2>
+      <div class="form-grid" style="grid-template-columns: 300px auto;">
+        <div class="form-group">
+          <label class="form-label">Mois</label>
+          <input type="month" class="form-input" id="monthInput" onchange="renderMonthly()">
+        </div>
+        <div class="form-group" style="align-self: end;">
+          <button class="btn btn-outline" onclick="exportMonthly()">⬇️ Export CSV</button>
+        </div>
+      </div>
+      <div class="table-container">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Produit</th>
+              <th>Échéance</th>
+              <th>Montant payé</th>
+              <th>Méthode</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="monthlyBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- FACTURE -->
+    <div class="tab-content" id="facture">
+      <h2>Générer facture + contrat</h2>
+
+      <!-- Bloc de recherche / sélection client — 2 colonnes larges -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1rem;">
+        <!-- Colonne gauche : recherche + filtre statut -->
+        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+          <label class="form-label">🔍 Rechercher un client</label>
+          <div style="position: relative;">
+            <input type="text" class="form-input" id="clientSearch"
+                   placeholder="Nom, téléphone, produit..."
+                   oninput="filterClients()"
+                   style="padding-right: 2.5rem;">
+            <button type="button" onclick="clearClientSearch()"
+                    title="Effacer"
+                    style="position:absolute;right:0.6rem;top:50%;transform:translateY(-50%);
+                           background:var(--border);border:none;border-radius:50%;
+                           width:1.4rem;height:1.4rem;font-size:0.85rem;
+                           cursor:pointer;display:flex;align-items:center;justify-content:center;
+                           color:var(--text-secondary);transition:all 0.2s;"
+                    onmouseover="this.style.background='var(--danger)';this.style.color='white';"
+                    onmouseout="this.style.background='var(--border)';this.style.color='var(--text-secondary)';">✕</button>
+          </div>
+          <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+            <select class="form-select" id="filterFactureStatus" onchange="filterClients()"
+                    style="flex:1; font-size:0.85rem; padding:0.5rem 0.75rem;">
+              <option value="">📋 Tous les clients</option>
+              <option value="solde">✅ Soldés uniquement</option>
+              <option value="encours">⏳ Solde en cours</option>
+            </select>
+            <div id="searchCount" style="font-size:0.8rem;color:var(--text-secondary);white-space:nowrap;min-width:fit-content;"></div>
+          </div>
+        </div>
+        <!-- Colonne droite : sélecteur client -->
+        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+          <label class="form-label">👤 Client sélectionné</label>
+          <select class="form-select" id="selectClient" onchange="generateInvoice()" style="height:calc(100% - 1.5rem);">
+            <option value="">— Sélectionner un client —</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Autres champs facture -->
+      <div class="form-grid" style="margin-top:1rem;">
+        <div class="form-group">
+          <label class="form-label">Civilité (Mme/Mr)</label>
+          <input type="text" class="form-input" id="civilite" placeholder="Mme ou Mr">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Numéro CNI (optionnel)</label>
+          <input type="text" class="form-input" id="invCNI" placeholder="ex: 1234567890123">
+        </div>
+        <div class="form-group" style="align-self: end;">
+          <label style="display: flex; align-items: center; gap: 0.5rem;">
+            <input type="checkbox" id="includeVAT" onchange="generateInvoice()">
+            <span>Inclure TVA (18%)</span>
+          </label>
+        </div>
+      </div>
+
+      <div style="margin: 1.5rem 0;">
+        <label class="form-label" style="display: block; margin-bottom: 0.5rem;">Logo de l'entreprise (optionnel)</label>
+        <input type="file" id="logoUpload" accept="image/*" onchange="handleLogoUpload(this)" class="form-input" style="padding: 0.5rem;">
+      </div>
+
+      <div id="invoiceContent" class="facture" style="display: none;">
+        <div class="invoice-header-modern">
+          <div class="company-info-modern">
+            <div style="display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1rem;">
+              <div class="logo-section-inline" id="logoSection" onclick="document.getElementById('logoUpload').click()">
+                <div class="logo-placeholder" id="logoPlaceholder">
+                  📷<br><span style="font-size: 0.6rem;">Logo</span>
+                </div>
+              </div>
+              <div style="flex: 1;">
+                <h2 style="margin: 0;">SEN-BUUR AGRO-TECH</h2>
+                <p style="color: var(--text-secondary); font-size: 0.875rem; line-height: 1.8; margin-top: 0.5rem;">
+                  NINEA : 008835459<br>
+                  Keur Massar / Marché Colobane, Dakar<br>
+                  Tél : 77 264 12 09 / 76 167 07 60<br>
+                  Email : <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f98a9c979b8c8c8b989e8b968d9c9a91b99e94989095d79a9694">[email&#160;protected]</a>
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="invoice-meta-modern">
+            <div class="invoice-number">FACTURE N° <span id="factNum"></span></div>
+            <div class="invoice-date" id="factMeta"></div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+          <div class="info-card-modern">
+            <h4>👤 Facturé à</h4>
+            <div class="info-card-content">
+              <div id="fClient"></div>
+              <div id="fTel" style="color: var(--text-secondary); font-size: 0.875rem;"></div>
+              <!-- Badge de statut global du client -->
+              <div id="clientStatus" style="margin-top: 0.25rem;"></div>
+            </div>
+          </div>
+          <div class="info-card-modern">
+            <h4>📦 Détails produit</h4>
+            <div class="info-card-content">
+              <div id="fProduit"></div>
+              <div id="fPrix" style="color: var(--text-secondary); font-size: 0.875rem;"></div>
+              <div id="fAcompte" style="color: var(--text-secondary); font-size: 0.875rem;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table class="table-modern">
+            <thead>
+              <tr>
+                <th>Numéro d'article</th>
+                <th>Description</th>
+                <th>Qté</th>
+                <th>Prix unitaire</th>
+                <th>Remise</th>
+                <th>Prix</th>
+              </tr>
+            </thead>
+            <tbody id="fRows"></tbody>
+          </table>
+        </div>
+
+        <div class="totaux-modern">
+          <div class="montant-lettres-modern">
+            <h4>💬 Montant en lettres</h4>
+            <div class="montant-lettres-text" id="fLettres"></div>
+          </div>
+          <div class="resume-financier-modern">
+            <div class="ligne-total">
+              <span>Sous-total :</span>
+              <span id="fSousTotal"></span>
+            </div>
+            <div class="ligne-total">
+              <span id="labelAcompteTotal">Acompte reçu :</span>
+              <span id="fAcompteTotal"></span>
+            </div>
+            <div class="ligne-total">
+              <span><strong>TOTAL RESTANT :</strong></span>
+              <span id="fReste"><strong></strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tableau récapitulatif des échéances (affiché sous les totaux, visible à l'impression) -->
+        <div id="echeanceSummary" style="margin-top: 1.25rem;"></div>
+
+        <div id="fPhrase" class="invoice-phrase"></div>
+
+        <div class="footnote">
+          Les articles restent la propriété du vendeur jusqu'à payement complet. Les produits sont garantis contre tout défaut de fabrication et les réparations effectuées dans le cadre de cette garantie sont gratuites.
+        </div>
+
+        <div class="bottom-brand">
+          SEN BUUR AGRO-TECH<br>
+          <span style="font-weight: normal;">NINEA : 008835459</span>
+        </div>
+
+        <div id="engagementSection" class="engagement">
+          <h4>Contrat d'engagement</h4>
+          <div id="contratTexte"></div>
+          <button class="btn" onclick="confirmAgreement()">Lu et approuvé</button>
+        </div>
+
+        <div class="action-buttons-modern">
+          <button class="btn-modern btn-primary-modern" onclick="window.print()">
+            🖨️ Imprimer
+          </button>
+          <button class="btn-modern btn-secondary-modern" onclick="exportPDF()">
+            📄 Télécharger PDF
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANALYTICS -->
+    <div class="tab-content" id="analytics">
+      <h2>Analytics & Prédictions</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin: 1.5rem 0;">
+        <div style="background: var(--white); padding: 1.5rem; border-radius: var(--radius);">
+          <canvas id="chartVentes"></canvas>
+        </div>
+        <div style="background: var(--white); padding: 1.5rem; border-radius: var(--radius);">
+          <canvas id="chartBenefices"></canvas>
+        </div>
+      </div>
+      <button class="btn btn-outline" onclick="exportAnalyticsExcel()">⬇️ Exporter Analytics (Excel)</button>
+    </div>
+
+    <!-- COMMUNICATION -->
+    <div class="tab-content" id="comm">
+      <h2>Communication Client</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Groupe</label>
+          <select class="form-select" id="commGroup">
+            <option value="tous">Tous les clients</option>
+            <option value="solde">Clients avec solde</option>
+            <option value="bon">Bons payeurs</option>
+            <option value="moyen">Payeurs moyens</option>
+            <option value="mauvais">Mauvais payeurs</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Canal</label>
+          <select class="form-select" id="commChannel">
+            <option value="whatsapp">WhatsApp</option>
+            <option value="sms">SMS</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" style="margin-top: 1rem;">
+        <label class="form-label">Message</label>
+        <textarea class="form-textarea" id="commMessage" rows="4">Bonjour, nous vous rappelons votre échéance chez SEN-BUUR AGRO-TECH.</textarea>
+      </div>
+      <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+        <button class="btn" onclick="sendGroupMessages()">📤 Envoyer</button>
+        <button class="btn btn-outline" onclick="saveTemplate()">💾 Sauvegarder modèle</button>
+      </div>
+      <div id="commLog" style="margin-top: 1.5rem;"></div>
+    </div>
+
+    <!-- OPTIONS -->
+    <div class="tab-content" id="options">
+      <h2>Options & Paramètres</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Mode sombre</label>
+          <label class="switch">
+            <input type="checkbox" id="darkToggle" onchange="toggleDarkMode()">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Code PIN (sécurité)</label>
+          <input type="password" class="form-input" id="pinInput" placeholder="Définir un PIN">
+          <button class="btn btn-sm" onclick="setEncryptionKey()" style="margin-top: 0.5rem;">🔒 Enregistrer PIN</button>
+        </div>
+      </div>
+      <div class="form-grid" style="margin-top: 1.5rem;">
+        <div class="form-group">
+          <label class="form-label">Export données (JSON)</label>
+          <button class="btn btn-outline" onclick="exportBackup()">⬇️ Exporter</button>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Import données (JSON)</label>
+          <input type="file" id="importFile" accept=".json" style="display:none" onchange="importBackup(this.files[0])">
+          <button class="btn btn-outline" onclick="document.getElementById('importFile').click()">⬆️ Importer</button>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Export Excel</label>
+          <button class="btn btn-outline" onclick="exportClientsExcel()">⬇️ Exporter</button>
+        </div>
+      </div>
+      <!-- Synchronisation Google Drive -->
+      <div class="form-grid" style="margin-top: 1.5rem;">
+        <div class="form-group">
+          <label class="form-label">Synchronisation Google Drive</label>
+          <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap: wrap;">
+            <span id="driveStatus">🔴 Hors ligne</span>
+            <button id="loginButton" class="btn btn-outline" onclick="handleAuthClick()" disabled>Se connecter</button>
+            <button id="syncButton" class="btn btn-outline" onclick="backupToDrive()" disabled>Synchroniser</button>
+            <button id="logoutButton" class="btn btn-outline" onclick="handleSignoutClick()" disabled>Se déconnecter</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chargement des bibliothèques Google API et GIS -->
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://apis.google.com/js/api.js" async defer onload="gapiLoaded()"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer onload="gisLoaded()"></script>
+
+  <script>
+    let clients = JSON.parse(localStorage.getItem('sbat_clients') || '[]');
+    let nextId = parseInt(localStorage.getItem('sbat_nextId') || '1', 10);
+    let encryptionKey = localStorage.getItem('sbat_enc_key') || '';
+    let currentEditId = null;
+    let chartVentes, chartBenefices;
+
+    /**
+     * Retourne une icône emoji correspondant à la catégorie.
+     * Les catégories spécifiques comme « Téléphone », « Ordinateur » et « Électroménager »
+     * sont associées à des emojis représentatifs.  Les autres catégories renvoient
+     * une chaîne vide afin de ne pas perturber l’affichage.
+     */
+    const getCategorieIcon = (categorie) => {
+      switch (categorie) {
+        case 'Téléphone':
+          return '📱';
+        case 'Ordinateur':
+          return '💻';
+        case 'Électroménager':
+          return '🔌';
+        default:
+          return '';
+      }
+    };
+
+    /*
+     * Configuration de la synchronisation Google Drive
+     * Ces constantes définissent l’identifiant client et la clé API fournis par l’utilisateur.
+     * DISCOVERY_DOC indique l’URL du document de découverte pour l’API Drive, tandis que
+     * SCOPES spécifie l’accès en lecture/écriture au fichier de sauvegarde.  Des variables d’état
+     * suivent pour suivre l’initialisation de gapi et GIS et l’identifiant du fichier dans Drive.
+     */
+    const CLIENT_ID = '2635071076-sq4kl93s3unmjdk5majqgpi9u7qnat5b.apps.googleusercontent.com';
+    const API_KEY = 'AIzaSyApePM7CNCRQ3ghkajMi91H1323jGjkXhw';
+    const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
+    const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+    let tokenClient;
+    let gapiInited = false;
+    let gisInited = false;
+    let currentFileId = localStorage.getItem('sbat_drive_file_id') || null;
+
+    /**
+     * Met à jour l’indicateur de statut de la synchronisation Drive.
+     * @param {string} status Texte à afficher (p. ex. "🟡 Synchronisation…").
+     */
+    const updateDriveStatus = (status) => {
+      const statusEl = document.getElementById('driveStatus');
+      if (statusEl) statusEl.textContent = status;
+    };
+
+    /**
+     * Active le bouton de connexion lorsque gapi et GIS sont chargés.
+     */
+    const maybeEnableButtons = () => {
+      if (gapiInited && gisInited) {
+        const loginBtn = document.getElementById('loginButton');
+        if (loginBtn) loginBtn.disabled = false;
+      }
+    };
+
+    // Fonction appelée lorsque la bibliothèque gapi est chargée
+    function gapiLoaded() {
+      gapi.load('client', initializeGapiClient);
+    }
+
+    // Initialise le client gapi avec la clé API et le document de découverte
+    async function initializeGapiClient() {
+      try {
+        await gapi.client.init({
+          apiKey: API_KEY,
+          discoveryDocs: [DISCOVERY_DOC],
+        });
+        gapiInited = true;
+        maybeEnableButtons();
+      } catch (error) {
+        console.error('Erreur lors de l\'initialisation de l\'API Google', error);
+      }
+    }
+
+    // Fonction appelée lorsque le script Google Identity Services est chargé
+    function gisLoaded() {
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: (tokenResponse) => {
+          if (tokenResponse && tokenResponse.access_token) {
+            const logoutBtn = document.getElementById('logoutButton');
+            const syncBtn = document.getElementById('syncButton');
+            if (logoutBtn) logoutBtn.disabled = false;
+            if (syncBtn) syncBtn.disabled = false;
+            updateDriveStatus('🟢 Connecté');
+          }
+        },
+      });
+      gisInited = true;
+      maybeEnableButtons();
+    }
+
+    /**
+     * Demande un jeton d’accès à l’utilisateur et déclenche une sauvegarde initiale.
+     */
+    async function handleAuthClick() {
+      tokenClient.callback = async (resp) => {
+        if (resp.error !== undefined) {
+          console.error(resp);
+          updateDriveStatus('🔴 Erreur');
+          return;
+        }
+        const logoutBtn = document.getElementById('logoutButton');
+        const syncBtn = document.getElementById('syncButton');
+        // Active les boutons de synchronisation et de déconnexion après authentification
+        if (logoutBtn) logoutBtn.disabled = false;
+        if (syncBtn) syncBtn.disabled = false;
+        updateDriveStatus('🟢 Connecté');
+        // Si un fichier existe déjà dans Drive, restaurer les données ; sinon, créer la sauvegarde initiale
+        if (currentFileId) {
+          await restoreFromDrive();
+        } else {
+          await backupToDrive();
+        }
+      };
+      // Demande le consentement à chaque connexion pour que l’utilisateur puisse choisir son compte
+      tokenClient.requestAccessToken({ prompt: 'consent' });
+    }
+
+    /**
+     * Révoque le jeton d’accès et réinitialise l’état de connexion.
+     */
+    function handleSignoutClick() {
+      const token = gapi.client.getToken();
+      if (token) {
+        google.accounts.oauth2.revoke(token.access_token);
+        gapi.client.setToken('');
+        localStorage.removeItem('sbat_drive_file_id');
+        currentFileId = null;
+      }
+      const loginBtn = document.getElementById('loginButton');
+      const syncBtn = document.getElementById('syncButton');
+      const logoutBtn = document.getElementById('logoutButton');
+      if (loginBtn) loginBtn.disabled = false;
+      if (syncBtn) syncBtn.disabled = true;
+      if (logoutBtn) logoutBtn.disabled = true;
+      updateDriveStatus('🔴 Hors ligne');
+    }
+
+    /**
+     * Sauvegarde les données locales sur Google Drive en créant ou mettant à jour
+     * un fichier JSON nommé sbat_backup.json. Le contenu comprend les clients
+     * et le compteur nextId. Le statut est mis à jour en fonction du résultat.
+     */
+    async function backupToDrive() {
+      const token = gapi.client.getToken();
+      if (!token) {
+        updateDriveStatus('🔴 Hors ligne');
+        return;
+      }
+      updateDriveStatus('🟡 Synchronisation…');
+      const content = JSON.stringify({ clients, nextId });
+      const fileMetadata = { name: 'sbat_backup.json', mimeType: 'application/json' };
+      const boundary = '-------314159265358979323846';
+      const delimiter = '\r\n--' + boundary + '\r\n';
+      const closeDelim = '\r\n--' + boundary + '--';
+      const multipartRequestBody =
+        delimiter +
+        'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+        JSON.stringify(fileMetadata) +
+        delimiter +
+        'Content-Type: application/json\r\n\r\n' +
+        content +
+        closeDelim;
+      try {
+        if (currentFileId) {
+          await gapi.client.request({
+            path: '/upload/drive/v3/files/' + currentFileId,
+            method: 'PATCH',
+            params: { uploadType: 'multipart' },
+            headers: { 'Content-Type': 'multipart/related; boundary=' + boundary },
+            body: multipartRequestBody,
+          });
+          updateDriveStatus('🟢 Sauvegardé');
+        } else {
+          const resp = await gapi.client.request({
+            path: '/upload/drive/v3/files',
+            method: 'POST',
+            params: { uploadType: 'multipart' },
+            headers: { 'Content-Type': 'multipart/related; boundary=' + boundary },
+            body: multipartRequestBody,
+          });
+          currentFileId = resp.result.id;
+          localStorage.setItem('sbat_drive_file_id', currentFileId);
+          updateDriveStatus('🟢 Sauvegardé');
+        }
+      } catch (e) {
+        console.error('Erreur de sauvegarde :', e);
+        updateDriveStatus('🔴 Erreur');
+      }
+    }
+
+    /**
+     * Restaure les données depuis Google Drive en téléchargeant le fichier JSON.
+     * Si le fichier existe, les variables globales et le localStorage sont mis à jour.
+     * La méthode `files.get` avec `alt=media` récupère le contenu brut du fichier【137882413206592†L362-L370】.
+     * Si aucune sauvegarde distante n’existe, l’état reste hors ligne.
+     */
+    async function restoreFromDrive() {
+      if (!currentFileId) {
+        updateDriveStatus('🔴 Aucun fichier distant');
+        return;
+      }
+      const token = gapi.client.getToken();
+      if (!token) {
+        updateDriveStatus('🔴 Hors ligne');
+        return;
+      }
+      updateDriveStatus('🟡 Restauration…');
+      try {
+        const resp = await gapi.client.drive.files.get({
+          fileId: currentFileId,
+          alt: 'media',
+        });
+        const data = JSON.parse(resp.body);
+        if (data && Array.isArray(data.clients) && data.nextId) {
+          clients = data.clients;
+          nextId = data.nextId;
+          localStorage.setItem('sbat_clients', JSON.stringify(clients));
+          localStorage.setItem('sbat_nextId', nextId);
+          renderClients();
+          updateDriveStatus('🟢 Restauré');
+        } else {
+          updateDriveStatus('🟡 Fichier vide');
+        }
+      } catch (e) {
+        console.error('Erreur de restauration :', e);
+        updateDriveStatus('🔴 Erreur');
+      }
+    }
+
+    const save = () => {
+      // Stocke les données localement
+      localStorage.setItem('sbat_clients', JSON.stringify(clients));
+      localStorage.setItem('sbat_nextId', nextId);
+      // Lance une sauvegarde distante si l’utilisateur est connecté.  La fonction backupToDrive
+      // vérifie elle‑même l’existence du jeton et du fichier, ce qui évite les appels inutiles.
+      backupToDrive();
+    };
+
+    const fmt = (n) => (n || 0).toLocaleString('fr-FR') + ' FCFA';
+    
+    const showToast = (message, type = 'success') => {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<span>${type === 'success' ? '✅' : '❌'}</span><span>${message}</span>`;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    };
+
+    const secureField = (value) => {
+      if (!value || !encryptionKey) return value;
+      try {
+        const cipher = CryptoJS.AES.encrypt(String(value), encryptionKey).toString();
+        return 'enc:' + cipher;
+      } catch (e) {
+        return value;
+      }
+    };
+
+    const revealField = (value) => {
+      if (!value) return '';
+      if (String(value).startsWith('enc:')) {
+        if (!encryptionKey) return '*****';
+        const cipher = value.slice(4);
+        try {
+          const bytes = CryptoJS.AES.decrypt(cipher, encryptionKey);
+          return bytes.toString(CryptoJS.enc.Utf8);
+        } catch (e) {
+          return '*****';
+        }
+      }
+      return value;
+    };
+
+    /**
+     * Formate un numéro sénégalais pour WhatsApp.
+     * Ajoute l'indicatif 221 si absent. Retourne uniquement les chiffres.
+     */
+    const senPhone = (tel) => {
+      const digits = (revealField(tel) || '').replace(/\D/g, '');
+      if (!digits) return '';
+      // Déjà avec indicatif 221
+      if (digits.startsWith('221')) return digits;
+      // Commence par 0 → retirer le 0 et ajouter 221
+      if (digits.startsWith('0')) return '221' + digits.slice(1);
+      // Numéro local 9 chiffres → ajouter 221
+      if (digits.length <= 9) return '221' + digits;
+      return digits;
+    };
+
+    const getSegment = (c) => {
+      // Soldé intégralement → toujours Bon payeur
+      if (remaining(c) <= 0) return 'Bon';
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Nouveau format : vérifier les échéances en retard
+      if (c.echeances && Array.isArray(c.echeances) && c.echeances.length > 0) {
+        let hasOverdue = false; // retard > 30 jours
+        let hasLate    = false; // retard > 7 jours
+
+        c.echeances.forEach(ech => {
+          if (ech.status === 'paye') return;
+          if (!ech.date) return;
+          const due = new Date(ech.date);
+          due.setHours(0, 0, 0, 0);
+          const daysLate = Math.floor((today - due) / 86400000);
+          if (daysLate > 30) hasOverdue = true;
+          else if (daysLate > 7) hasLate = true;
+        });
+
+        if (hasOverdue) return 'Mauvais';
+        if (hasLate)    return 'Moyen';
+        return 'Bon';
+      }
+
+      // Fallback : ancienneté de la vente (cash sans échéances)
+      const days = Math.floor((Date.now() - new Date(c.date).getTime()) / 86400000);
+      if (days > 60) return 'Mauvais';
+      if (days > 30) return 'Moyen';
+      return 'Bon';
+    };
+
+    const getUniqueValues = (field) => {
+      const values = new Set();
+      clients.forEach(c => {
+        if (c[field]) values.add(c[field]);
+        if (field === 'produit' && c.produits) {
+          c.produits.forEach(p => values.add(p.nom));
+        }
+      });
+      return Array.from(values);
+    };
+
+    const showAutocompleteSuggestions = (inputId, field) => {
+      const input = document.getElementById(inputId);
+      const suggestionsDiv = document.getElementById(inputId + '-suggestions');
+      const value = input.value.toLowerCase().trim();
+      
+      if (value.length < 1) {
+        suggestionsDiv.classList.remove('active');
+        return;
+      }
+
+      const uniqueValues = getUniqueValues(field === 'nom' ? 'nom' : field);
+      const filtered = uniqueValues.filter(v => v.toLowerCase().includes(value));
+
+      if (filtered.length === 0) {
+        suggestionsDiv.classList.remove('active');
+        return;
+      }
+
+      suggestionsDiv.innerHTML = filtered.slice(0, 5).map(v => {
+        const highlighted = v.replace(new RegExp(value, 'gi'), match => `<strong>${match}</strong>`);
+        return `<div class="autocomplete-item" onclick="selectSuggestion('${inputId}', '${v.replace(/'/g, "\\'")}')">${highlighted}</div>`;
+      }).join('');
+      
+      suggestionsDiv.classList.add('active');
+    };
+
+    const hideAutocompleteSuggestions = (inputId) => {
+      const suggestionsDiv = document.getElementById(inputId + '-suggestions');
+      suggestionsDiv.classList.remove('active');
+    };
+
+    const selectSuggestion = (inputId, value) => {
+      document.getElementById(inputId).value = value;
+      hideAutocompleteSuggestions(inputId);
+      
+      if (inputId === 'nomClient') {
+        const client = clients.find(c => c.nom === value);
+        if (client) document.getElementById('telClient').value = revealField(client.tel) || '';
+      }
+    };
+
+
+    // Gestion des échéances dynamiques
+    let echeanceCount = 0;
+
+    const addEcheance = (prefilled = {}) => {
+      echeanceCount++;
+      const container = document.getElementById('echeancesList');
+      const entry = document.createElement('div');
+      const entryId = 'ech-' + echeanceCount;
+      entry.className = 'echeance-entry';
+      entry.setAttribute('data-id', entryId);
+      entry.innerHTML = `
+        <div class="form-group">
+          <label class="form-label">Date échéance</label>
+          <input type="date" class="form-input ech-date" value="${prefilled.date || ''}" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Montant (FCFA)</label>
+          <input type="number" class="form-input ech-montant" value="${prefilled.montant || ''}" oninput="calcRest()" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Statut</label>
+          <select class="form-select ech-status">
+            <option value="attente" ${prefilled.status === 'attente' ? 'selected' : ''}>En attente</option>
+            <option value="paye" ${prefilled.status === 'paye' ? 'selected' : ''}>Payé</option>
+          </select>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="removeEcheance('${entryId}')" type="button" style="align-self: end;">✖️</button>
+      `;
+      container.appendChild(entry);
+      calcRest();
+    };
+
+    const removeEcheance = (entryId) => {
+      const entry = document.querySelector(`[data-id="${entryId}"]`);
+      if (entry) {
+        entry.remove();
+        calcRest();
+      }
+    };
+
+    const getEcheances = () => {
+      const echeances = [];
+      document.querySelectorAll('.echeance-entry').forEach(entry => {
+        const date = entry.querySelector('.ech-date')?.value || '';
+        const montant = +entry.querySelector('.ech-montant')?.value || 0;
+        const status = entry.querySelector('.ech-status')?.value || 'attente';
+        if (montant > 0) {
+          echeances.push({ date, montant, status });
+        }
+      });
+      return echeances;
+    };
+
+    const loadEcheances = (echeances = []) => {
+      document.getElementById('echeancesList').innerHTML = '';
+      echeanceCount = 0;
+      if (echeances && echeances.length > 0) {
+        echeances.forEach(ech => addEcheance(ech));
+      } else {
+        // Si aucune échéance, ajouter une par défaut pour moratoire
+        const type = document.getElementById('typePaiement')?.value;
+        if (type === 'moratoire') {
+          addEcheance();
+        }
+      }
+    };
+
+    const addProduit = (prefilled = {}) => {
+      const container = document.getElementById('productsContainer');
+      const entry = document.createElement('div');
+      const entryId = 'prod-' + Date.now();
+      entry.className = 'product-entry';
+      entry.innerHTML = `
+        <div class="form-group autocomplete-container">
+          <label class="form-label">Produit</label>
+          <input type="text" class="form-input prod-name" id="${entryId}-name" placeholder="Nom produit" value="${prefilled.nom || ''}"
+                 oninput="showAutocompleteSuggestions('${entryId}-name', 'produit')"
+                 onfocus="showAutocompleteSuggestions('${entryId}-name', 'produit')"
+                 onblur="setTimeout(() => hideAutocompleteSuggestions('${entryId}-name'), 200)">
+          <div id="${entryId}-name-suggestions" class="autocomplete-suggestions"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Catégorie</label>
+          <select class="form-select prod-cat">
+            <option value="">Sélectionner...</option>
+            <!-- Les catégories incluent désormais des icônes et un attribut value explicite pour conserver la valeur logique -->
+            <option value="Téléphone" ${prefilled.categorie === 'Téléphone' ? 'selected' : ''}>📱 Téléphone</option>
+            <option value="Ordinateur" ${prefilled.categorie === 'Ordinateur' ? 'selected' : ''}>💻 Ordinateur</option>
+            <option value="Électroménager" ${prefilled.categorie === 'Électroménager' ? 'selected' : ''}>🔌 Électroménager</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Prix achat</label>
+          <input type="number" class="form-input prod-achat" value="${prefilled.prixAchat || ''}" oninput="calcRest()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Prix vente</label>
+          <input type="number" class="form-input prod-vente" value="${prefilled.prixVente || ''}" oninput="calcRest()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Qté</label>
+          <input type="number" class="form-input prod-qty" value="${prefilled.qty || 1}" min="1" oninput="calcRest()">
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="this.closest('.product-entry').remove(); calcRest();" style="align-self: end;">✖️</button>
+      `;
+      container.appendChild(entry);
+      calcRest();
+    };
+
+    const calcRest = () => {
+      let total = 0;
+      document.querySelectorAll('.product-entry').forEach(entry => {
+        const qty = +entry.querySelector('.prod-qty')?.value || 1;
+        const prix = +entry.querySelector('.prod-vente')?.value || 0;
+        total += qty * prix;
+      });
+      
+      const acompte = +document.getElementById('acompte')?.value || 0;
+      
+      // Calculer le total des échéances
+      let totalEcheances = 0;
+      document.querySelectorAll('.echeance-entry').forEach(entry => {
+        const montant = +entry.querySelector('.ech-montant')?.value || 0;
+        totalEcheances += montant;
+      });
+      
+      const resteInput = document.getElementById('reste');
+      if (resteInput) {
+        resteInput.value = Math.max(0, total - (acompte + totalEcheances));
+      }
+    };
+
+    const togglePaymentFields = () => {
+      const type = document.getElementById('typePaiement').value;
+      const container = document.getElementById('echeancesContainer');
+      
+      if (type === 'moratoire') {
+        container.classList.add('active');
+        // Ajouter une échéance par défaut si la liste est vide
+        if (document.querySelectorAll('.echeance-entry').length === 0) {
+          addEcheance();
+        }
+      } else {
+        container.classList.remove('active');
+        // Vider les échéances pour le paiement cash
+        document.getElementById('echeancesList').innerHTML = '';
+        echeanceCount = 0;
+      }
+      calcRest();
+    };
+
+    const saveSale = () => {
+      const produits = [];
+      let prixAchatTotal = 0;
+      let prixVenteTotal = 0;
+
+      document.querySelectorAll('.product-entry').forEach(entry => {
+        const nom = entry.querySelector('.prod-name')?.value.trim();
+        if (nom) {
+          const cat = entry.querySelector('.prod-cat')?.value || '';
+          const pa = +entry.querySelector('.prod-achat')?.value || 0;
+          const pv = +entry.querySelector('.prod-vente')?.value || 0;
+          const qty = +entry.querySelector('.prod-qty')?.value || 1;
+          produits.push({ nom, categorie: cat, prixAchat: pa, prixVente: pv, qty });
+          prixAchatTotal += pa * qty;
+          prixVenteTotal += pv * qty;
+        }
+      });
+
+      const nom = document.getElementById('nomClient').value.trim();
+      // Nettoyage du numéro : ne conserver que les chiffres
+      let telRaw = document.getElementById('telClient').value.trim();
+      let tel = telRaw.replace(/\D+/g, '');
+
+      if (!nom || !tel || produits.length === 0) {
+        showToast('Veuillez remplir tous les champs requis', 'error');
+        return;
+      }
+      // Le numéro doit comporter au moins 9 chiffres (format sénégalais)
+      if (tel.length < 9) {
+        showToast('Numéro de téléphone invalide', 'error');
+        return;
+      }
+      // Vérifier que chaque produit a un prix de vente positif et une quantité valide
+      const invalidProduct = produits.some(p => !p.nom || p.prixVente <= 0 || p.qty <= 0);
+      if (invalidProduct) {
+        showToast('Veuillez saisir un prix et une quantité valides pour chaque produit', 'error');
+        return;
+      }
+
+      if (currentEditId) {
+        const c = clients.find(x => x.id === currentEditId);
+        if (c) {
+          c.date = document.getElementById('dateVente').value || new Date().toISOString().slice(0, 10);
+          c.nom = nom;
+          c.tel = secureField(tel);
+          c.produits = produits;
+          c.categorie = produits[0]?.categorie || '';
+          c.produit = produits[0]?.nom || '';
+          c.fournisseur = document.getElementById('fournisseur').value.trim();
+          c.prixAchat = prixAchatTotal;
+          c.prixVente = prixVenteTotal;
+          c.acompte = +document.getElementById('acompte').value || 0;
+          c.echeances = getEcheances();
+          c.serial = document.getElementById('serial').value.trim();
+          c.garantie = +document.getElementById('garantie').value || 0;
+          c.typePaiement = document.getElementById('typePaiement').value;
+        }
+        save();
+        showToast('Vente modifiée');
+        currentEditId = null;
+        clearForm();
+        renderClients();
+        return;
+      }
+
+      const sale = {
+        id: nextId++,
+        date: document.getElementById('dateVente').value || new Date().toISOString().slice(0, 10),
+        nom,
+        tel: secureField(tel),
+        produits,
+        categorie: produits[0]?.categorie || '',
+        produit: produits[0]?.nom || '',
+        fournisseur: document.getElementById('fournisseur').value.trim(),
+        typePaiement: document.getElementById('typePaiement').value,
+        prixAchat: prixAchatTotal,
+        prixVente: prixVenteTotal,
+        acompte: +document.getElementById('acompte').value || 0,
+        echeances: getEcheances(),
+        serial: document.getElementById('serial').value.trim(),
+        garantie: +document.getElementById('garantie').value || 0,
+        payments: [],
+      };
+
+      clients.push(sale);
+      save();
+      showToast('Vente enregistrée avec succès');
+      clearForm();
+      renderClients();
+    };
+
+    const clearForm = () => {
+      document.getElementById('nomClient').value = '';
+      document.getElementById('telClient').value = '';
+      document.getElementById('fournisseur').value = '';
+      document.getElementById('acompte').value = '';
+      document.getElementById('serial').value = '';
+      document.getElementById('garantie').value = '';
+      document.getElementById('reste').value = '';
+      document.getElementById('productsContainer').innerHTML = '';
+      document.getElementById('echeancesList').innerHTML = '';
+      echeanceCount = 0;
+      addProduit();
+      currentEditId = null;
+    };
+
+    const remaining = (c) => {
+      const acompte = c.acompte || 0;
+      let totalPaye = 0;
+      
+      // Supporter l'ancien système (e1, e2, e3, paid1, paid2, paid3)
+      if (c.e1 || c.e2 || c.e3) {
+        totalPaye = (c.paid1 || 0) + (c.paid2 || 0) + (c.paid3 || 0);
+      }
+      
+      // Nouveau système avec échéances dynamiques
+      if (c.echeances && Array.isArray(c.echeances)) {
+        totalPaye = c.echeances.reduce((sum, ech) => {
+          // Si un paiement partiel est enregistré, ajouter la valeur 'paid'
+          if (typeof ech.paid === 'number' && !isNaN(ech.paid)) {
+            return sum + ech.paid;
+          }
+          // Sinon, si l'échéance est marquée comme payée, ajouter le montant total
+          if (ech.status === 'paye') {
+            return sum + (ech.montant || 0);
+          }
+          return sum;
+        }, 0);
+      }
+
+      return Math.max(0, (c.prixVente || 0) - acompte - totalPaye);
+    };
+
+    const summaryProduits = (c) => {
+      if (c?.produits?.length) {
+        if (c.produits.length === 1) return c.produits[0].nom;
+        return c.produits[0].nom + ' + ' + (c.produits.length - 1) + ' autres';
+      }
+      return c.produit || '';
+    };
+
+    /**
+     * Normalise une chaîne en retirant les accents et en la mettant en minuscules.
+     * Utile pour la recherche insensible aux accents/casse.
+     */
+    const normalizeStr = (str) => {
+      return (str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    };
+
+    /**
+     * Filtre la liste déroulante des clients dans la rubrique Facturation.
+     * - Recherche insensible aux accents et à la casse
+     * - Champs couverts : nom, téléphone, nom du produit
+     * - Préserve la sélection en cours si le client correspond encore
+     * - Met à jour le compteur de correspondances
+     */
+    const filterClients = () => {
+      const searchInput = document.getElementById('clientSearch');
+      const countEl    = document.getElementById('searchCount');
+      const sel        = document.getElementById('selectClient');
+      if (!sel) return;
+
+      // Sauvegarder la sélection actuelle avant de reconstruire
+      const previousId = sel.value;
+
+      const query = normalizeStr(searchInput ? searchInput.value.trim() : '');
+
+      // Reconstruire les options filtrées
+      sel.innerHTML = '<option value="">— Sélectionner un client —</option>';
+      let count = 0;
+
+      const statusFilter = document.getElementById('filterFactureStatus')?.value || '';
+
+      clients.forEach(c => {
+        const name    = normalizeStr(c.nom);
+        const tel     = normalizeStr(revealField(c.tel) || '');
+        const produit = normalizeStr(summaryProduits(c));
+
+        const matchText = !query
+          || name.includes(query)
+          || tel.includes(query)
+          || produit.includes(query);
+
+        const rem = remaining(c);
+        const matchStatus = !statusFilter
+          || (statusFilter === 'solde'   && rem === 0)
+          || (statusFilter === 'encours' && rem > 0);
+
+        if (matchText && matchStatus) {
+          const o = document.createElement('option');
+          o.value = c.id;
+          const rem = remaining(c);
+          const remLabel = rem > 0 ? ` — Solde: ${fmt(rem)}` : ' — ✅ Soldé';
+          o.textContent = `${c.nom} | ${summaryProduits(c)}${remLabel}`;
+          // Restaurer la sélection si le client était déjà choisi
+          if (String(c.id) === String(previousId)) o.selected = true;
+          sel.appendChild(o);
+          count++;
+        }
+      });
+
+      // Si le client sélectionné a disparu du filtre, cacher la facture
+      if (previousId && sel.value !== String(previousId)) {
+        document.getElementById('invoiceContent').style.display = 'none';
+      }
+
+      // Mise à jour du compteur avec indicateur visuel
+      if (countEl) {
+        if (!query) {
+          countEl.textContent = `${count} client${count > 1 ? 's' : ''}`;
+          countEl.style.color = 'var(--text-secondary)';
+        } else if (count === 0) {
+          countEl.textContent = '⚠️ Aucun client trouvé';
+          countEl.style.color = 'var(--danger)';
+        } else {
+          countEl.textContent = `✅ ${count} correspondance${count > 1 ? 's' : ''}`;
+          countEl.style.color = 'var(--success)';
+        }
+      }
+    };
+
+    /**
+     * Efface le champ de recherche et réinitialise la liste complète.
+     */
+    const clearClientSearch = () => {
+      const input = document.getElementById('clientSearch');
+      if (input) { input.value = ''; input.focus(); }
+      filterClients();
+    };
+
+    const badgeByPaid = (paid) => {
+      return paid > 0 ? '<span class="badge badge-success">Payé</span>' : '<span class="badge badge-danger">Non payé</span>';
+    };
+
+    const renderClients = (resetPage = false) => {
+      if (resetPage) clientsPage = 1;
+      const tbody = document.getElementById('clientsBody');
+      tbody.innerHTML = '';
+      
+      const searchTerm = (document.getElementById('searchClients')?.value || '').toLowerCase().trim();
+      const segmentFilter = document.getElementById('filterSegment')?.value || '';
+      
+      let filteredClients = clients.filter(c => {
+        // Afficher uniquement les clients ayant un solde restant (non soldés)
+        if (remaining(c) <= 0) return false;
+        if (segmentFilter && getSegment(c) !== segmentFilter) {
+          return false;
+        }
+        
+        if (searchTerm) {
+          const nom = (c.nom || '').toLowerCase();
+          const tel = revealField(c.tel).toLowerCase();
+          const produit = summaryProduits(c).toLowerCase();
+          const fournisseur = (c.fournisseur || '').toLowerCase();
+          const segment = getSegment(c).toLowerCase();
+          
+          return nom.includes(searchTerm) || 
+                 tel.includes(searchTerm) || 
+                 produit.includes(searchTerm) ||
+                 fournisseur.includes(searchTerm) ||
+                 segment.includes(searchTerm);
+        }
+        
+        return true;
+      });
+      
+      const totalRestant = filteredClients.reduce((sum, c) => sum + remaining(c), 0);
+      const countEl = document.getElementById('clientsCount');
+      const totalEl = document.getElementById('clientsTotal');
+      
+      if (countEl) {
+        countEl.textContent = `${filteredClients.length} client${filteredClients.length > 1 ? 's' : ''} affiché${filteredClients.length > 1 ? 's' : ''}`;
+      }
+      if (totalEl) {
+        totalEl.textContent = `Total restant : ${fmt(totalRestant)}`;
+      }
+      
+      if (filteredClients.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-secondary);">Aucun client trouvé</td></tr>';
+        document.getElementById('clientsPagination').innerHTML = '';
+        return;
+      }
+
+      // #14 — Pagination
+      const totalPages = Math.ceil(filteredClients.length / PAGE_SIZE);
+      if (clientsPage > totalPages) clientsPage = totalPages;
+      const pageStart = (clientsPage - 1) * PAGE_SIZE;
+      const pageClients = filteredClients.slice(pageStart, pageStart + PAGE_SIZE);
+
+      pageClients.forEach(c => {
+        const seg = getSegment(c);
+        const segClass = seg === 'Bon' ? 'badge-success' : (seg === 'Moyen' ? 'badge-warning' : 'badge-danger');
+        const tr = document.createElement('tr');
+        // Calculer le nombre d'échéances et le statut
+        let nbEcheances = 0;
+        let nbPayees = 0;
+        
+        if (c.echeances && Array.isArray(c.echeances)) {
+          nbEcheances = c.echeances.length;
+          nbPayees = c.echeances.filter(e => e.status === 'paye').length;
+        } else if (c.e1 || c.e2 || c.e3) {
+          nbEcheances = [c.e1, c.e2, c.e3].filter(e => e > 0).length;
+          nbPayees = [1, 2, 3].filter(i => (c['paid' + i] || 0) >= (c['e' + i] || 0) && c['e' + i] > 0).length;
+        }
+        
+        const echeanceStatus = nbEcheances > 0 
+          ? `${nbPayees}/${nbEcheances} payées` 
+          : 'Aucune échéance';
+        
+        tr.innerHTML = `
+          <td>${c.date}</td>
+          <td>${c.nom}</td>
+          <td>${revealField(c.tel)}</td>
+          <td><span class="badge ${segClass}">${seg}</span></td>
+          <td>${summaryProduits(c)}</td>
+          <td style="white-space: nowrap;">
+            <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem;">${echeanceStatus}</div>
+            <button class="btn btn-sm" onclick="openPaymentModal(${c.id})" style="background: var(--primary); color: white;">
+              💳 Paiements
+            </button>
+          </td>
+          <td><strong style="color: ${remaining(c) > 0 ? 'var(--danger)' : 'var(--success)'};">${fmt(remaining(c))}</strong></td>
+          <td style="white-space: nowrap;">
+            <button class="btn btn-sm btn-outline" onclick="editClient(${c.id})" title="Modifier">✏️</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteClient(${c.id})" title="Supprimer">🗑️</button>
+            <button class="btn btn-sm" onclick="goToInvoice(${c.id})" title="Générer facture" style="background:var(--warning);color:white;">🧾</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      // Afficher la pagination
+      document.getElementById('clientsPagination').innerHTML = buildPaginationHTML(clientsPage, totalPages, 'goToClientsPage');
+    };
+
+    const clearFilters = () => {
+      const searchInput = document.getElementById('searchClients');
+      const segmentFilter = document.getElementById('filterSegment');
+      
+      if (searchInput) searchInput.value = '';
+      if (segmentFilter) segmentFilter.value = '';
+      
+      renderClients();
+      showToast('Filtres réinitialisés');
+    };
+
+    // Réinitialiser les filtres pour la rubrique des clients soldés
+    const clearFiltersSoldes = () => {
+      const searchInput = document.getElementById('searchClientsSoldes');
+      const segmentFilter = document.getElementById('filterSegmentSoldes');
+      
+      if (searchInput) searchInput.value = '';
+      if (segmentFilter) segmentFilter.value = '';
+      
+      renderClientsSoldes();
+      showToast('Filtres réinitialisés');
+    };
+
+    // Afficher la liste des clients dont le solde est entièrement réglé (restant = 0)
+    const renderClientsSoldes = (resetPage = false) => {
+      if (resetPage) clientsSoldesPage = 1;
+      const tbody = document.getElementById('clientsSoldesBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const searchTerm = (document.getElementById('searchClientsSoldes')?.value || '').toLowerCase().trim();
+      const segmentFilter = document.getElementById('filterSegmentSoldes')?.value || '';
+
+      // Sélectionner uniquement les clients soldés
+      let filtered = clients.filter(c => remaining(c) === 0);
+
+      // Appliquer le filtre de segment
+      if (segmentFilter) {
+        filtered = filtered.filter(c => getSegment(c) === segmentFilter);
+      }
+
+      // Appliquer la recherche textuelle
+      if (searchTerm) {
+        filtered = filtered.filter(c => {
+          const nom = (c.nom || '').toLowerCase();
+          const tel = revealField(c.tel).toLowerCase();
+          const produit = summaryProduits(c).toLowerCase();
+          const fournisseur = (c.fournisseur || '').toLowerCase();
+          const segment = getSegment(c).toLowerCase();
+          return nom.includes(searchTerm) || 
+                 tel.includes(searchTerm) || 
+                 produit.includes(searchTerm) ||
+                 fournisseur.includes(searchTerm) ||
+                 segment.includes(searchTerm);
+        });
+      }
+
+      // Mettre à jour les compteurs
+      const countEl = document.getElementById('clientsSoldesCount');
+      const totalEl = document.getElementById('clientsSoldesTotal');
+      if (countEl) {
+        countEl.textContent = `${filtered.length} client${filtered.length > 1 ? 's' : ''} soldé${filtered.length > 1 ? 's' : ''}`;
+      }
+      if (totalEl) {
+        // Les clients soldés n'ont plus de restant, donc pas de total à afficher
+        totalEl.textContent = '';
+      }
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-secondary);">Aucun client soldé</td></tr>';
+        document.getElementById('clientsSoldesPagination').innerHTML = '';
+        return;
+      }
+
+      // #14 — Pagination
+      const totalPagesSoldes = Math.ceil(filtered.length / PAGE_SIZE);
+      if (clientsSoldesPage > totalPagesSoldes) clientsSoldesPage = totalPagesSoldes;
+      const pageStartS = (clientsSoldesPage - 1) * PAGE_SIZE;
+      const pageFiltered = filtered.slice(pageStartS, pageStartS + PAGE_SIZE);
+
+      pageFiltered.forEach(c => {
+        const seg = getSegment(c);
+        const segClass = seg === 'Bon' ? 'badge-success' : (seg === 'Moyen' ? 'badge-warning' : 'badge-danger');
+        const tr = document.createElement('tr');
+        
+        // Calculer le nombre d'échéances et le statut
+        let nbEcheances = 0;
+        let nbPayees = 0;
+        if (c.echeances && Array.isArray(c.echeances)) {
+          nbEcheances = c.echeances.length;
+          nbPayees = c.echeances.filter(e => e.status === 'paye').length;
+        } else if (c.e1 || c.e2 || c.e3) {
+          nbEcheances = [c.e1, c.e2, c.e3].filter(e => e > 0).length;
+          nbPayees = [1, 2, 3].filter(i => (c['paid' + i] || 0) >= (c['e' + i] || 0) && c['e' + i] > 0).length;
+        }
+        const echeanceStatus = nbEcheances > 0 
+          ? `${nbPayees}/${nbEcheances} payées` 
+          : 'Aucune échéance';
+        
+        tr.innerHTML = `
+          <td>${c.date}</td>
+          <td>${c.nom}</td>
+          <td>${revealField(c.tel)}</td>
+          <td><span class="badge ${segClass}">${seg}</span></td>
+          <td>${summaryProduits(c)}</td>
+          <td style="white-space: nowrap;">
+            <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem;">${echeanceStatus}</div>
+            <button class="btn btn-sm btn-outline" disabled style="opacity: 0.6; cursor: default;">
+              ✔️ Soldé
+            </button>
+          </td>
+          <td><strong style="color: var(--success);">${fmt(remaining(c))}</strong></td>
+          <td style="white-space: nowrap;">
+            <button class="btn btn-sm btn-outline" onclick="editClient(${c.id})" title="Modifier">✏️</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteClient(${c.id})" title="Supprimer">🗑️</button>
+            <button class="btn btn-sm" onclick="goToInvoice(${c.id})" title="Générer facture" style="background:var(--warning);color:white;">🧾</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      document.getElementById('clientsSoldesPagination').innerHTML = buildPaginationHTML(clientsSoldesPage, totalPagesSoldes, 'goToClientsSoldesPage');
+    };
+
+    // Exporter la liste des clients soldés au format CSV
+    const exportClientsSoldes = () => {
+      const rows = [['Date', 'Client', 'Téléphone', 'Segment', 'Produit', 'Restant']];
+      clients.filter(c => remaining(c) === 0).forEach(c => {
+        rows.push([c.date, c.nom, revealField(c.tel), getSegment(c), summaryProduits(c), remaining(c)]);
+      });
+      const csv = rows.map(r => r.join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `clients_soldes_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    // Exporter la liste des clients soldés au format Excel
+    const exportClientsSoldesExcel = () => {
+      const rows = [['Date', 'Client', 'Téléphone', 'Segment', 'Produit', 'Restant']];
+      clients.filter(c => remaining(c) === 0).forEach(c => {
+        rows.push([c.date, c.nom, revealField(c.tel), getSegment(c), summaryProduits(c), remaining(c)]);
+      });
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      XLSX.utils.book_append_sheet(wb, ws, 'Clients soldes');
+      XLSX.writeFile(wb, `clients_soldes_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    };
+
+    const editClient = (id) => {
+      const c = clients.find(x => x.id === id);
+      if (!c) return;
+      currentEditId = id;
+      switchTab('vente');
+      
+      document.getElementById('dateVente').value = c.date;
+      document.getElementById('nomClient').value = c.nom;
+      document.getElementById('telClient').value = revealField(c.tel);
+      document.getElementById('fournisseur').value = c.fournisseur || '';
+      document.getElementById('acompte').value = c.acompte || '';
+      document.getElementById('serial').value = c.serial || '';
+      document.getElementById('garantie').value = c.garantie || '';
+      document.getElementById('typePaiement').value = c.typePaiement || 'cash';
+      
+      document.getElementById('productsContainer').innerHTML = '';
+      if (c.produits?.length) {
+        c.produits.forEach(p => addProduit(p));
+      } else {
+        addProduit({ nom: c.produit, categorie: c.categorie, prixAchat: c.prixAchat, prixVente: c.prixVente, qty: 1 });
+      }
+      
+      // Charger les échéances (supporter ancien et nouveau format)
+      if (c.echeances && Array.isArray(c.echeances)) {
+        loadEcheances(c.echeances);
+      } else if (c.e1 || c.e2 || c.e3) {
+        // Migration de l'ancien format
+        const oldEcheances = [];
+        if (c.e1) oldEcheances.push({ date: '', montant: c.e1, status: c.paid1 >= c.e1 ? 'paye' : 'attente' });
+        if (c.e2) oldEcheances.push({ date: '', montant: c.e2, status: c.paid2 >= c.e2 ? 'paye' : 'attente' });
+        if (c.e3) oldEcheances.push({ date: '', montant: c.e3, status: c.paid3 >= c.e3 ? 'paye' : 'attente' });
+        loadEcheances(oldEcheances);
+      }
+      
+      togglePaymentFields();
+      calcRest();
+    };
+
+
+    // Gestion mobile-friendly des paiements d'échéances
+    let currentPaymentClient = null;
+    let currentPaymentForm = null;
+
+    const openPaymentModal = (clientId) => {
+      const client = clients.find(c => c.id === clientId);
+      if (!client) return;
+      
+      currentPaymentClient = client;
+      const modal = document.getElementById('paymentModal');
+      const summary = document.getElementById('clientSummary');
+      const list = document.getElementById('echeancesList');
+      
+      // Afficher le résumé client
+      const reste = remaining(client);
+      summary.innerHTML = `
+        <div class="client-summary-row">
+          <span>👤 Client :</span>
+          <span>${client.nom}</span>
+        </div>
+        <div class="client-summary-row">
+          <span>📦 Produit :</span>
+          <span>${summaryProduits(client)}</span>
+        </div>
+        <div class="client-summary-row">
+          <span>💵 Prix total :</span>
+          <span>${fmt(client.prixVente || 0)}</span>
+        </div>
+        <div class="client-summary-row">
+          <span>💰 Acompte :</span>
+          <span>${fmt(client.acompte || 0)}</span>
+        </div>
+        <div class="client-summary-row">
+          <span>📊 Restant dû :</span>
+          <span>${fmt(reste)}</span>
+        </div>
+      `;
+      
+      // Afficher les échéances
+      list.innerHTML = '';
+      
+      // Vérifier si nouveau format (echeances array) ou ancien format (e1, e2, e3)
+      if (client.echeances && Array.isArray(client.echeances) && client.echeances.length > 0) {
+        // Nouveau format
+        client.echeances.forEach((ech, index) => {
+          const echeanceDiv = createEcheanceItem(client, ech, index, 'new');
+          list.appendChild(echeanceDiv);
+        });
+      } else if (client.e1 || client.e2 || client.e3) {
+        // Ancien format - convertir à la volée
+        for (let i = 1; i <= 3; i++) {
+          const montant = client['e' + i] || 0;
+          if (montant > 0) {
+            const paid = client['paid' + i] || 0;
+            const ech = {
+              date: '',
+              montant: montant,
+              status: paid >= montant ? 'paye' : 'attente',
+              paid: paid
+            };
+            const echeanceDiv = createEcheanceItem(client, ech, i - 1, 'old', i);
+            list.appendChild(echeanceDiv);
+          }
+        }
+      } else {
+        list.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-secondary);">Aucune échéance de paiement</div>';
+      }
+      
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    };
+
+    const createEcheanceItem = (client, echeance, index, format, oldIndex = null) => {
+      const div = document.createElement('div');
+      const isPaid = format === 'new' ? echeance.status === 'paye' : (echeance.paid >= echeance.montant);
+      const restant = format === 'new' ? (isPaid ? 0 : echeance.montant) : Math.max(0, echeance.montant - (echeance.paid || 0));
+      
+      div.className = 'echeance-item' + (isPaid ? ' paid' : '');
+      
+      const displayIndex = format === 'old' ? oldIndex : index + 1;
+      const dateDisplay = echeance.date ? `📅 ${echeance.date}` : '📅 Date non définie';
+      
+      div.innerHTML = `
+        <div class="echeance-header">
+          <div class="echeance-title">Échéance ${displayIndex}</div>
+          <span class="badge ${isPaid ? 'badge-success' : 'badge-warning'}">${isPaid ? '✅ Payé' : '⏳ En attente'}</span>
+        </div>
+        <div class="echeance-info">
+          <div class="echeance-info-row">
+            <span>${dateDisplay}</span>
+          </div>
+          <div class="echeance-info-row">
+            <span>💰 Montant :</span>
+            <strong>${fmt(echeance.montant)}</strong>
+          </div>
+          ${format === 'old' && echeance.paid > 0 ? `
+            <div class="echeance-info-row">
+              <span>✅ Déjà payé :</span>
+              <strong>${fmt(echeance.paid)}</strong>
+            </div>
+          ` : ''}
+          <div class="echeance-info-row">
+            <span>📊 Restant :</span>
+            <strong style="color: ${restant > 0 ? 'var(--danger)' : 'var(--success)'};">${fmt(restant)}</strong>
+          </div>
+        </div>
+        <div class="echeance-actions">
+          <button class="btn-pay" onclick="showPaymentForm(${index}, '${format}', ${oldIndex})" ${isPaid && restant === 0 ? 'disabled' : ''}>
+            💳 ${isPaid && restant === 0 ? 'Payé intégralement' : 'Enregistrer un paiement'}
+          </button>
+        </div>
+        <div class="payment-form" id="paymentForm-${index}-${format}">
+          <div class="payment-form-group">
+            <label class="payment-form-label">💵 Montant reçu (FCFA)</label>
+            <input type="number" class="payment-form-input" id="paymentAmount-${index}-${format}" 
+                   value="${restant}" min="0" max="${restant}" placeholder="Montant...">
+          </div>
+          <div class="payment-form-group">
+            <label class="payment-form-label">💳 Méthode de paiement</label>
+            <select class="payment-form-input" id="paymentMethod-${index}-${format}">
+              <option value="cash">💵 Cash</option>
+              <option value="Orange Money">📱 Orange Money</option>
+              <option value="Wave">🌊 Wave</option>
+              <option value="Chèque">📄 Chèque</option>
+              <option value="Virement">🏦 Virement bancaire</option>
+            </select>
+          </div>
+          <div class="payment-form-buttons">
+            <button class="btn-validate" onclick="validatePayment(${index}, '${format}', ${oldIndex})">✅ Valider</button>
+            <button class="btn-cancel" onclick="hidePaymentForm(${index}, '${format}')">❌ Annuler</button>
+          </div>
+        </div>
+      `;
+      
+      return div;
+    };
+
+    const showPaymentForm = (index, format, oldIndex) => {
+      // Fermer tous les autres formulaires
+      document.querySelectorAll('.payment-form').forEach(form => {
+        form.classList.remove('active');
+      });
+      
+      // Ouvrir le formulaire sélectionné
+      const form = document.getElementById(`paymentForm-${index}-${format}`);
+      if (form) {
+        form.classList.add('active');
+        currentPaymentForm = { index, format, oldIndex };
+      }
+    };
+
+    const hidePaymentForm = (index, format) => {
+      const form = document.getElementById(`paymentForm-${index}-${format}`);
+      if (form) {
+        form.classList.remove('active');
+        currentPaymentForm = null;
+      }
+    };
+
+    const validatePayment = (index, format, oldIndex) => {
+      if (!currentPaymentClient) return;
+      
+      const amountInput = document.getElementById(`paymentAmount-${index}-${format}`);
+      const methodSelect = document.getElementById(`paymentMethod-${index}-${format}`);
+      
+      const amount = parseFloat(amountInput.value) || 0;
+      const method = methodSelect.value;
+      
+      if (amount <= 0) {
+        showToast('Montant invalide', 'error');
+        return;
+      }
+      
+      // Traiter le paiement selon le format
+      if (format === 'new') {
+        // Nouveau format avec array d'échéances
+        if (!currentPaymentClient.echeances || !currentPaymentClient.echeances[index]) {
+          showToast('Échéance introuvable', 'error');
+          return;
+        }
+        
+        const echeance = currentPaymentClient.echeances[index];
+        const restant = echeance.montant - (echeance.paid || 0);
+        
+        if (amount > restant) {
+          showToast('Le montant dépasse le restant dû', 'error');
+          return;
+        }
+        
+        // Enregistrer le paiement
+        echeance.paid = (echeance.paid || 0) + amount;
+        if (echeance.paid >= echeance.montant) {
+          echeance.status = 'paye';
+        }
+        
+        // Ajouter à l'historique des paiements
+        currentPaymentClient.payments = currentPaymentClient.payments || [];
+        currentPaymentClient.payments.push({
+          date: new Date().toISOString().slice(0, 10),
+          echeance: index + 1,
+          montant: amount,
+          mode: method
+        });
+        
+      } else {
+        // Ancien format (e1, e2, e3)
+        const idx = oldIndex;
+        const due = currentPaymentClient['e' + idx] || 0;
+        const already = currentPaymentClient['paid' + idx] || 0;
+        const restant = Math.max(0, due - already);
+        
+        if (amount > restant) {
+          showToast('Le montant dépasse le restant dû', 'error');
+          return;
+        }
+        
+        currentPaymentClient['paid' + idx] = already + amount;
+        currentPaymentClient.payments = currentPaymentClient.payments || [];
+        currentPaymentClient.payments.push({
+          date: new Date().toISOString().slice(0, 10),
+          echeance: idx,
+          montant: amount,
+          mode: method
+        });
+      }
+      
+      save();
+      showToast('💰 Paiement enregistré avec succès');
+      
+      // Rafraîchir la modal
+      closePaymentModal();
+      setTimeout(() => {
+        openPaymentModal(currentPaymentClient.id);
+        renderClients();
+      }, 300);
+    };
+
+    const closePaymentModal = () => {
+      const modal = document.getElementById('paymentModal');
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+      currentPaymentClient = null;
+      currentPaymentForm = null;
+    };
+
+    // Fermer la modal en cliquant à l'extérieur
+    document.addEventListener('click', (e) => {
+      const modal = document.getElementById('paymentModal');
+      if (e.target === modal) {
+        closePaymentModal();
+      }
+    });
+
+    const addPayment = (id, idx) => {
+      const c = clients.find(x => x.id === id);
+      if (!c) return;
+      
+      const due = c['e' + idx] || 0;
+      const already = c['paid' + idx] || 0;
+      const restEch = Math.max(0, due - already);
+      
+      const val = prompt(`Paiement pour échéance ${idx} (reste: ${fmt(restEch)}). Montant reçu :`, restEch || 0);
+      const amt = parseFloat(val || '0');
+      
+      if (!amt || amt <= 0) {
+        showToast('Montant invalide', 'error');
+        return;
+      }
+      
+      const mode = prompt('Méthode de paiement (cash, Orange Money, Wave, Chèque)', 'cash') || 'cash';
+      
+      c['paid' + idx] = (c['paid' + idx] || 0) + amt;
+      c.payments = c.payments || [];
+      c.payments.push({
+        date: new Date().toISOString().slice(0, 10),
+        echeance: idx,
+        montant: amt,
+        mode: mode
+      });
+      
+      save();
+      renderClients();
+      showToast('Paiement enregistré');
+    };
+
+    // #7 — Raccourci : aller directement à la facture d'un client depuis le tableau
+    const goToInvoice = (id) => {
+      switchTab('facture');
+      // Après le rendu de l'onglet, sélectionner le client et générer la facture
+      setTimeout(() => {
+        const sel = document.getElementById('selectClient');
+        if (sel) {
+          sel.value = id;
+          generateInvoice();
+          sel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+    };
+
+    // #14 — Pagination : 20 lignes par page pour les tableaux clients et soldés
+    const PAGE_SIZE = 20;
+    let clientsPage = 1;
+    let clientsSoldesPage = 1;
+
+    /**
+     * Génère le HTML de la barre de pagination.
+     * @param {number} currentPage  Page courante (1-indexed)
+     * @param {number} totalPages   Nombre total de pages
+     * @param {string} fnName       Nom de la fonction JS à appeler au clic (ex. 'goToClientsPage')
+     */
+    const buildPaginationHTML = (currentPage, totalPages, fnName) => {
+      if (totalPages <= 1) return '';
+      let html = `<div class="pagination-bar">`;
+
+      // Bouton précédent
+      html += `<button class="page-btn" onclick="${fnName}(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>‹ Préc.</button>`;
+
+      // Pages numérotées (max 5 visible autour de la page courante)
+      const start = Math.max(1, currentPage - 2);
+      const end   = Math.min(totalPages, currentPage + 2);
+
+      if (start > 1) html += `<button class="page-btn" onclick="${fnName}(1)">1</button>`;
+      if (start > 2) html += `<span class="page-ellipsis">…</span>`;
+
+      for (let i = start; i <= end; i++) {
+        html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="${fnName}(${i})">${i}</button>`;
+      }
+
+      if (end < totalPages - 1) html += `<span class="page-ellipsis">…</span>`;
+      if (end < totalPages) html += `<button class="page-btn" onclick="${fnName}(${totalPages})">${totalPages}</button>`;
+
+      // Bouton suivant
+      html += `<button class="page-btn" onclick="${fnName}(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Suiv. ›</button>`;
+
+      html += `<span class="page-info">Page ${currentPage} / ${totalPages}</span></div>`;
+      return html;
+    };
+
+    const goToClientsPage = (p) => {
+      clientsPage = p;
+      renderClients();
+      document.getElementById('clients').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    const goToClientsSoldesPage = (p) => {
+      clientsSoldesPage = p;
+      renderClientsSoldes();
+      document.getElementById('clientsSoldes').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    const deleteClient = (id) => {
+      if (confirm('Supprimer cette vente ?')) {
+        clients = clients.filter(c => c.id !== id);
+        save();
+        renderClients();
+        showToast('Vente supprimée');
+      }
+    };
+
+    const renderStats = () => {
+      const totalInv = clients.reduce((s, c) => s + (c.prixAchat || 0), 0);
+      const totalCre = clients.reduce((s, c) => s + remaining(c), 0);
+      const totalBen = clients.reduce((s, c) => s + ((c.prixVente || 0) - (c.prixAchat || 0)), 0);
+      
+      document.getElementById('kInv').textContent = fmt(totalInv);
+      document.getElementById('kCre').textContent = fmt(totalCre);
+      document.getElementById('kBen').textContent = fmt(totalBen);
+      document.getElementById('kVte').textContent = clients.length;
+
+      const map = {};
+      clients.forEach(c => {
+        const key = c.categorie || c.produit || 'Autre';
+        if (!map[key]) map[key] = { nb: 0, inv: 0, ca: 0, ben: 0 };
+        map[key].nb++;
+        map[key].inv += c.prixAchat || 0;
+        map[key].ca += c.prixVente || 0;
+        map[key].ben += (c.prixVente || 0) - (c.prixAchat || 0);
+      });
+
+      const tbody = document.getElementById('statsBody');
+      tbody.innerHTML = '';
+      Object.entries(map).forEach(([k, v]) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${getCategorieIcon(k)} ${k}</td>
+          <td>${v.nb}</td>
+          <td>${fmt(v.inv)}</td>
+          <td>${fmt(v.ca)}</td>
+          <td>${fmt(v.ben)}</td>
+          <td>${v.ca ? ((v.ben / v.ca * 100).toFixed(1)) : 0}%</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // #9 — Échéances des 7 prochains jours
+      const todayD = new Date(); todayD.setHours(0,0,0,0);
+      const in7D   = new Date(todayD); in7D.setDate(in7D.getDate() + 7);
+      const weekRows = [];
+      clients.forEach(c => {
+        if (!c.echeances || !Array.isArray(c.echeances)) return;
+        c.echeances.forEach((ech, idx) => {
+          if (ech.status === 'paye') return;
+          if (!ech.date) return;
+          const due = new Date(ech.date); due.setHours(0,0,0,0);
+          if (due >= todayD && due <= in7D) {
+            const daysLeft = Math.round((due - todayD) / 86400000);
+            weekRows.push({ c, ech, idx, daysLeft, montantRestant: (ech.montant||0)-(ech.paid||0), due });
+          }
+        });
+      });
+      weekRows.sort((a, b) => a.due - b.due);
+
+      const weekTbody = document.getElementById('weekEcheancesBody');
+      const wBadge    = document.getElementById('weekEcheancesBadge');
+      if (weekTbody) {
+        weekTbody.innerHTML = '';
+        if (wBadge) wBadge.textContent = weekRows.length > 0 ? String(weekRows.length) : '';
+        if (weekRows.length === 0) {
+          weekTbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:1.5rem;color:var(--text-secondary);">✅ Aucune échéance dans les 7 prochains jours</td></tr>';
+        } else {
+          weekRows.forEach(({ c, ech, idx, daysLeft, montantRestant }) => {
+            const urgency = daysLeft === 0 ? 'var(--danger)' : daysLeft <= 2 ? 'var(--warning)' : 'var(--success)';
+            const label   = daysLeft === 0 ? "Aujourd'hui ⚠️" : daysLeft === 1 ? 'Demain 🔔' : `Dans ${daysLeft}j`;
+            const phone   = senPhone(c.tel);
+            const tr2 = document.createElement('tr');
+            tr2.innerHTML = `
+              <td><strong>${c.nom}</strong></td>
+              <td>${summaryProduits(c)}</td>
+              <td><strong>${ech.date}</strong></td>
+              <td><strong style="color:var(--danger)">${fmt(montantRestant)}</strong></td>
+              <td><span style="color:${urgency};font-weight:700;">${label}</span></td>
+              <td style="white-space:nowrap;">
+                <button class="btn btn-sm btn-success"
+                  onclick="window.open('https://wa.me/${phone}?text='+encodeURIComponent('Bonjour ${c.nom}, votre échéance n°${idx+1} de ${fmt(montantRestant)} pour ${summaryProduits(c)} est prévue le ${ech.date}. Merci. SEN-BUUR AGRO-TECH 🙏'),'_blank')"
+                  title="Rappel WhatsApp">📲 Rappel</button>
+                <button class="btn btn-sm" onclick="openPaymentModal(${c.id})" style="background:var(--primary);color:white;" title="Encaisser">💳</button>
+              </td>
+            `;
+            weekTbody.appendChild(tr2);
+          });
+        }
+      }
+    };
+
+    const renderReminders = () => {
+      const arr = clients.filter(c => remaining(c) > 0);
+      document.getElementById('retardNb').textContent = arr.length;
+      document.getElementById('retardMontant').textContent = fmt(arr.reduce((s, c) => s + remaining(c), 0));
+      
+      const tbody = document.getElementById('remindersBody');
+      tbody.innerHTML = '';
+      arr.forEach(c => {
+        const days = Math.floor((Date.now() - new Date(c.date).getTime()) / 86400000);
+        const phone = senPhone(c.tel);
+        // Message WhatsApp personnalisé avec nom, produit et solde
+        const msg = encodeURIComponent(
+          `Bonjour ${c.nom}, nous vous rappelons que votre solde pour ${summaryProduits(c)} ` +
+          `chez SEN-BUUR AGRO-TECH est de ${fmt(remaining(c))}. ` +
+          `Merci de régulariser votre situation. 🙏`
+        );
+        const waUrl = `https://wa.me/${phone}?text=${msg}`;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${c.nom}</strong></td>
+          <td><a href="tel:${revealField(c.tel)}" style="color:var(--primary)">${revealField(c.tel)}</a></td>
+          <td>${summaryProduits(c)}</td>
+          <td><strong style="color:var(--danger)">${fmt(remaining(c))}</strong></td>
+          <td>
+            <span style="color:${days > 60 ? 'var(--danger)' : days > 30 ? 'var(--warning)' : 'var(--text-secondary)'}; font-weight:600;">
+              ${days}j
+            </span>
+          </td>
+          <td style="white-space:nowrap;">
+            <button class="btn btn-sm btn-success" onclick="window.open('${waUrl}', '_blank')" title="Envoyer message personnalisé">
+              📲 WhatsApp
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    };
+
+    const copyNums = () => {
+      const nums = clients.filter(c => remaining(c) > 0).map(c => revealField(c.tel)).join(', ');
+      if (!nums) {
+        showToast('Aucun client avec solde', 'error');
+        return;
+      }
+      navigator.clipboard.writeText(nums).then(() => showToast('Numéros copiés'));
+    };
+
+    const renderMonthly = () => {
+      const ym = document.getElementById('monthInput').value;
+      const tbody = document.getElementById('monthlyBody');
+      tbody.innerHTML = '';
+      
+      if (!ym) return;
+
+      clients.forEach(c => {
+        (c.payments || []).filter(p => (p.date || '').startsWith(ym)).forEach(p => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${c.nom}</td>
+            <td>${summaryProduits(c)}</td>
+            <td>Échéance ${p.echeance}</td>
+            <td>${fmt(p.montant)}</td>
+            <td>${p.mode || '—'}</td>
+            <td>${p.date}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      });
+    };
+
+    const generateInvoice = () => {
+  const id = parseInt(document.getElementById('selectClient').value, 10);
+  const civilite = (document.getElementById('civilite').value || '').trim();
+  const c = clients.find(x => x.id === id);
+  
+  if (!c) {
+    document.getElementById('invoiceContent').style.display = 'none';
+    return;
+  }
+
+  const facNo = `FAC-${String(c.id).padStart(4, '0')}`;
+  const today = new Date().toLocaleDateString('fr-FR');
+  
+  document.getElementById('factNum').textContent = facNo;
+  document.getElementById('factMeta').innerHTML = `<strong>Date :</strong> ${today}`;
+
+  document.getElementById('fClient').textContent = c.nom;
+  document.getElementById('fTel').textContent = revealField(c.tel) || '';
+  
+  let produitDesc = '';
+  if (c.produits?.length) {
+    produitDesc = c.produits.map(p => `${p.nom}${p.qty > 1 ? ' x' + p.qty : ''}`).join(', ');
+  } else {
+    produitDesc = c.produit;
+  }
+  document.getElementById('fProduit').textContent = produitDesc + (c.serial ? ` (SN/IMEI: ${c.serial})` : '');
+  document.getElementById('fPrix').textContent = `Prix de vente : ${fmt(c.prixVente)}`;
+  document.getElementById('fAcompte').textContent = `Acompte : ${fmt(c.acompte)} — Garantie: ${c.garantie || 0} mois`;
+
+  const tbody = document.getElementById('fRows');
+  tbody.innerHTML = '';
+  
+  if (c.produits?.length) {
+    c.produits.forEach((p, idx) => {
+      const totalLigne = (p.prixVente || 0) * (p.qty || 1);
+      tbody.insertAdjacentHTML('beforeend', `
+        <tr>
+          <td>${c.id}-${idx + 1}</td>
+          <td>${escapeHTML(p.nom)}</td>
+          <td>${p.qty || 1}</td>
+          <td>${fmt(p.prixVente)}</td>
+          <td>—</td>
+          <td>${fmt(totalLigne)}</td>
+        </tr>
+      `);
+    });
+  } else {
+    tbody.insertAdjacentHTML('beforeend', `
+      <tr>
+        <td>${c.id}</td>
+        <td>${escapeHTML(c.produit)}</td>
+        <td>1</td>
+        <td>${fmt(c.prixVente)}</td>
+        <td>—</td>
+        <td>${fmt(c.prixVente)}</td>
+      </tr>
+    `);
+  }
+
+  const includeVAT = document.getElementById('includeVAT')?.checked;
+  const tva = includeVAT ? (c.prixVente || 0) * 0.18 : 0;
+  
+  document.getElementById('fSousTotal').textContent = fmt(c.prixVente);
+  
+  // ============================================================
+  // CALCUL COHÉRENT DES PAIEMENTS (identique à remaining())
+  // Nouveau format prioritaire ; ancien format en fallback exclusif.
+  // ============================================================
+
+  let echPaye = 0;
+  if (c.echeances && Array.isArray(c.echeances)) {
+    // Nouveau format : sommer les paiements partiels (ech.paid) ou le montant complet si payé
+    echPaye = c.echeances.reduce((sum, ech) => {
+      if (typeof ech.paid === 'number' && !isNaN(ech.paid)) return sum + ech.paid;
+      if (ech.status === 'paye') return sum + (ech.montant || 0);
+      return sum;
+    }, 0);
+  } else if (c.e1 || c.e2 || c.e3) {
+    // Ancien format (fallback exclusif — évite le double-comptage)
+    echPaye = (c.paid1 || 0) + (c.paid2 || 0) + (c.paid3 || 0);
+  }
+
+  const totalPaye = (c.acompte || 0) + echPaye;
+
+  // Choisir le bon libellé selon ce qui a été payé
+  const labelAcompte = echPaye > 0 ? 'Total payé (acompte + échéances) :' : 'Acompte reçu :';
+  const labelEl = document.getElementById('labelAcompteTotal');
+  if (labelEl) labelEl.textContent = labelAcompte;
+
+  document.getElementById('fAcompteTotal').textContent = fmt(totalPaye);
+  
+  // Calcul du restant avec TVA en utilisant la fonction remaining pour plus de robustesse
+  const resteTotal = Math.max(0, remaining(c) + tva);
+  document.getElementById('fReste').textContent = fmt(resteTotal);
+
+  // Mettre à jour le statut global du client (Soldé, Partiel, Non payé)
+  const statusEl = document.getElementById('clientStatus');
+  if (statusEl) {
+    const rem = remaining(c);
+    let statusHtml = '';
+    if (rem === 0) {
+      statusHtml = '<span class="badge badge-success">✅ Soldé</span>';
+    } else if (rem === c.prixVente) {
+      statusHtml = '<span class="badge badge-danger">❌ Non payé</span>';
+    } else {
+      statusHtml = '<span class="badge badge-warning">⚡ Partiel</span>';
+    }
+    statusEl.innerHTML = statusHtml;
+  }
+
+  // Générer le tableau récapitulatif des échéances si présent
+  const echSumEl = document.getElementById('echeanceSummary');
+  if (echSumEl) {
+    if (c.echeances && Array.isArray(c.echeances) && c.echeances.length > 0) {
+      let tableHtml = `
+        <div style="margin-bottom: 0.5rem; font-weight: 600; color: var(--text); font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem;">
+          📅 Détail des échéances
+        </div>
+        <div style="overflow-x: auto; border-radius: var(--radius); box-shadow: var(--shadow);">
+          <table class="table-modern" style="margin: 0; font-size: 0.85rem;">
+            <thead>
+              <tr>
+                <th>N°</th>
+                <th>Date prévue</th>
+                <th>Prévu</th>
+                <th>Payé</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody>`;
+      c.echeances.forEach((ech, idx) => {
+        const dateStr = ech.date ? new Date(ech.date).toLocaleDateString('fr-FR') : 'À convenir';
+        const montant = fmt(ech.montant);
+        const paidAmount = (typeof ech.paid === 'number' && !isNaN(ech.paid))
+          ? ech.paid
+          : (ech.status === 'paye' ? (ech.montant || 0) : 0);
+        const montantPaye = fmt(paidAmount);
+        let badge = '';
+        if (paidAmount >= (ech.montant || 0) && ech.montant > 0) {
+          badge = '<span class="badge badge-success">✅ Payé</span>';
+        } else if (paidAmount > 0) {
+          badge = '<span class="badge badge-info">⚡ Partiel</span>';
+        } else {
+          badge = '<span class="badge badge-warning">⏳ Attente</span>';
+        }
+        tableHtml += `<tr><td><strong>${idx + 1}</strong></td><td>${dateStr}</td><td>${montant}</td><td>${montantPaye}</td><td>${badge}</td></tr>`;
+      });
+      tableHtml += '</tbody></table></div>';
+      echSumEl.innerHTML = tableHtml;
+    } else {
+      echSumEl.innerHTML = '';
+    }
+  }
+
+  const lettres = nombreEnLettres(c.prixVente + tva) + ' francs CFA';
+  document.getElementById('fLettres').textContent = lettres;
+
+  const phraseEl = document.getElementById('fPhrase');
+  if (phraseEl) phraseEl.textContent = `Cette facture est arrêtée à la somme de ${lettres}`;
+
+  const moratoire = c.typePaiement === 'moratoire';
+  const engEl = document.getElementById('engagementSection');
+  if (engEl) engEl.style.display = moratoire ? 'block' : 'none';
+
+  if (moratoire) {
+    const cni = (document.getElementById('invCNI').value || '').trim();
+    const civ = civilite || 'Mr/Mme';
+    const summary = summaryProduits(c);
+    // Construire la liste dynamique des échéances
+    let echList = '';
+    if (c.echeances && Array.isArray(c.echeances) && c.echeances.length > 0) {
+      echList = c.echeances.map((e, idx) => {
+        const dateStr = e.date ? new Date(e.date).toLocaleDateString('fr-FR') : 'date à convenir';
+        return `Échéance ${idx + 1} : ${dateStr} → ${fmt(e.montant)} FCFA`;
+      }).join('<br>');
+    }
+    const contratHTML = `
+      Je soussigné <strong>${civ} ${escapeHTML(c.nom)}</strong>, <strong>CNI numéro : ${cni || '________'}</strong>.<br>
+      Je reconnais avoir pris <strong>${escapeHTML(summary)}</strong> d'une valeur de
+      <strong>${lettres}</strong>.<br>
+      ${echList ? echList + '<br>' : ''}
+      (Acompte : <strong>${fmt(c.acompte)}</strong>).<br>
+      Je m'engage à régler le montant dû selon les échéances convenues pour une durée n'excédant pas plus de 2 mois à partir du <strong>${new Date(c.date).toLocaleDateString('fr-FR')}</strong>.<br>
+      En cas de non-respect des termes du contrat je suis prêt(e) à subir toutes les sanctions juridiques s'y appliquant.<br>
+      <strong>Numéro CNI :</strong> ${cni || '________'}<br><br>
+      <strong>Date et signature :</strong> ______________________________
+    `;
+    document.getElementById('contratTexte').innerHTML = contratHTML;
+  }
+
+  document.getElementById('invoiceContent').style.display = 'block';
+};
+
+    const escapeHTML = (s) => {
+      return (s || '').replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[m]));
+    };
+
+    const nombreEnLettres = (n) => {
+      n = Math.floor(+n || 0);
+      if (n === 0) return 'zéro';
+      
+      const unites = ['', 'un', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf'];
+      const teens = ['dix', 'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize', 'dix-sept', 'dix-huit', 'dix-neuf'];
+      const diz = ['', 'dix', 'vingt', 'trente', 'quarante', 'cinquante', 'soixante', 'soixante-dix', 'quatre-vingt', 'quatre-vingt-dix'];
+      
+      const sousCent = (x) => {
+        if (x < 10) return unites[x];
+        if (x < 20) return teens[x - 10];
+        const d = Math.floor(x / 10), u = x % 10;
+        if (d === 7 || d === 9) return diz[d - 1] + (u ? '-' + teens[u] : '');
+        if (d === 8 && u === 0) return 'quatre-vingts';
+        return diz[d] + (u ? '-' + unites[u] : '');
+      };
+      
+      const sousMille = (x) => {
+        if (x < 100) return sousCent(x);
+        const c = Math.floor(x / 100), r = x % 100;
+        let s = (c === 1 ? 'cent' : unites[c] + ' cent');
+        if (c > 1 && r === 0) s += 's';
+        return s + (r ? ' ' + sousCent(r) : '');
+      };
+      
+      const section = (x, word, plural) => {
+        if (x === 0) return '';
+        if (x === 1 && word === 'mille') return 'mille';
+        return sousMille(x) + ' ' + (x > 1 ? plural : word);
+      };
+      
+      const millions = Math.floor(n / 1e6);
+      n %= 1e6;
+      const milliers = Math.floor(n / 1e3);
+      n %= 1e3;
+      
+      const parts = [
+        millions ? section(millions, 'million', 'millions') : '',
+        milliers ? section(milliers, 'mille', 'mille') : '',
+        n ? sousMille(n) : ''
+      ].filter(Boolean).join(' ');
+      
+      return parts.trim();
+    };
+
+    const handleLogoUpload = (input) => {
+      const file = input.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const logoSection = document.getElementById('logoSection');
+          if (logoSection) {
+            logoSection.innerHTML = `<img src="${e.target.result}" alt="Logo entreprise">`;
+            logoSection.style.border = '2px solid var(--primary)';
+            logoSection.style.background = 'white';
+            localStorage.setItem('company_logo', e.target.result);
+            showToast('Logo ajouté avec succès');
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+
+    const loadStoredLogo = () => {
+      const storedLogo = localStorage.getItem('company_logo');
+      if (storedLogo) {
+        const logoSection = document.getElementById('logoSection');
+        if (logoSection) {
+          logoSection.innerHTML = `<img src="${storedLogo}" alt="Logo entreprise">`;
+          logoSection.style.border = '2px solid var(--primary)';
+          logoSection.style.background = 'white';
+        }
+      }
+    };
+
+    const confirmAgreement = () => {
+      showToast('Contrat approuvé. Vous pouvez maintenant imprimer ou télécharger la facture.');
+    };
+
+    const exportPDF = () => {
+      const invoiceEl = document.getElementById('invoiceContent');
+      if (!invoiceEl) return;
+      
+      const factureHtml = invoiceEl.outerHTML;
+      
+      const factureStyles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
+        .map(node => node.outerHTML)
+        .join('\n');
+      
+      const printWindow = window.open('', '', 'width=900,height=800');
+      
+      printWindow.document.write(
+        `<!DOCTYPE html>
+        <html lang="fr">
+        <head>
+          <meta charset="utf-8">
+          <title>Facture - SEN-BUUR AGRO-TECH</title>
+          ${factureStyles}
+          <style>
+            body { margin: 0; padding: 0; background: white; }
+            .facture { display: block !important; }
+            .action-buttons-modern, .form-grid, .form-group, h2, #logoUpload { display: none !important; }
+          </style>
+        </head>
+        <body>
+          ${factureHtml}
+        </body>
+        </html>`
+      );
+      
+      printWindow.document.close();
+      
+      printWindow.onload = function() {
+        printWindow.focus();
+        setTimeout(() => {
+          printWindow.print();
+          printWindow.close();
+        }, 250);
+      };
+    };
+
+    const renderAnalytics = () => {
+      const salesByMonth = {}, benByMonth = {};
+      
+      clients.forEach(c => {
+        const month = (c.date || '').slice(0, 7);
+        salesByMonth[month] = (salesByMonth[month] || 0) + (c.prixVente || 0);
+        benByMonth[month] = (benByMonth[month] || 0) + ((c.prixVente || 0) - (c.prixAchat || 0));
+      });
+
+      const months = Object.keys(salesByMonth).sort();
+      const salesData = months.map(m => salesByMonth[m]);
+      const benData = months.map(m => benByMonth[m]);
+
+      const ctxV = document.getElementById('chartVentes')?.getContext('2d');
+      if (ctxV) {
+        if (chartVentes) chartVentes.destroy();
+        chartVentes = new Chart(ctxV, {
+          type: 'bar',
+          data: {
+            labels: months,
+            datasets: [{
+              label: 'Ventes',
+              data: salesData,
+              backgroundColor: 'rgba(99, 102, 241, 0.5)',
+              borderColor: 'rgb(99, 102, 241)',
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              title: { display: true, text: "Chiffre d'affaires par mois" }
+            }
+          }
+        });
+      }
+
+      const ctxB = document.getElementById('chartBenefices')?.getContext('2d');
+      if (ctxB) {
+        if (chartBenefices) chartBenefices.destroy();
+        chartBenefices = new Chart(ctxB, {
+          type: 'line',
+          data: {
+            labels: months,
+            datasets: [{
+              label: 'Bénéfices',
+              data: benData,
+              borderColor: 'rgb(16, 185, 129)',
+              tension: 0.3
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              title: { display: true, text: 'Bénéfices par mois' }
+            }
+          }
+        });
+      }
+    };
+
+    const sendGroupMessages = () => {
+      const group = document.getElementById('commGroup').value;
+      const message = document.getElementById('commMessage').value;
+      
+      const targets = clients.filter(c => {
+        const seg = getSegment(c).toLowerCase();
+        if (group === 'tous') return true;
+        if (group === 'solde') return remaining(c) > 0;
+        return seg === group;
+      });
+
+      if (!targets.length) {
+        showToast('Aucun destinataire', 'error');
+        return;
+      }
+
+      const logDiv = document.getElementById('commLog');
+      logDiv.innerHTML = '';
+      
+      targets.forEach((c, idx) => {
+        const phone = senPhone(c.tel);
+        const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+        setTimeout(() => window.open(url, '_blank'), idx * 200);
+        logDiv.innerHTML += `<div>WhatsApp ouvert pour ${c.nom}</div>`;
+      });
+      
+      showToast('Messages en cours d\'envoi');
+    };
+
+    const saveTemplate = () => {
+      const msg = document.getElementById('commMessage').value;
+      localStorage.setItem('sbat_comm_template', msg);
+      showToast('Modèle sauvegardé');
+    };
+
+    const toggleDarkMode = () => {
+      document.body.classList.toggle('dark');
+      const isDark = document.body.classList.contains('dark');
+      localStorage.setItem('sbat_dark', isDark);
+      document.getElementById('darkToggle').checked = isDark;
+    };
+
+    const setEncryptionKey = () => {
+      const pin = document.getElementById('pinInput').value.trim();
+      if (!pin) {
+        encryptionKey = '';
+        localStorage.removeItem('sbat_enc_key');
+        clients.forEach(c => c.tel = revealField(c.tel));
+        save();
+        showToast('PIN supprimé');
+        renderClients();
+        return;
+      }
+      encryptionKey = pin;
+      localStorage.setItem('sbat_enc_key', encryptionKey);
+      clients.forEach(c => c.tel = secureField(revealField(c.tel)));
+      save();
+      showToast('PIN enregistré');
+      renderClients();
+    };
+
+    const exportBackup = () => {
+      const data = { clients, nextId };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `backup_${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Sauvegarde exportée');
+    };
+
+    const importBackup = (file) => {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (data.clients && Array.isArray(data.clients)) {
+            clients = data.clients;
+            nextId = data.nextId || 1;
+            save();
+            showToast('Données importées');
+            renderClients();
+          }
+        } catch (err) {
+          showToast('Erreur d\'importation', 'error');
+        }
+      };
+      reader.readAsText(file);
+    };
+
+    const exportClients = () => {
+      const rows = [['Date', 'Client', 'Téléphone', 'Segment', 'Produit', 'Restant']];
+      clients.forEach(c => {
+        rows.push([c.date, c.nom, revealField(c.tel), getSegment(c), summaryProduits(c), remaining(c)]);
+      });
+      const csv = rows.map(r => r.join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `clients_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    const exportClientsExcel = () => {
+      const rows = [['Date', 'Client', 'Téléphone', 'Segment', 'Produit', 'Restant']];
+      clients.forEach(c => {
+        rows.push([c.date, c.nom, revealField(c.tel), getSegment(c), summaryProduits(c), remaining(c)]);
+      });
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      XLSX.utils.book_append_sheet(wb, ws, 'Clients');
+      XLSX.writeFile(wb, `clients_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    };
+
+    const exportMonthly = () => {
+      const rows = [['Client', 'Produit', 'Échéance', 'Montant', 'Méthode', 'Date']];
+      document.querySelectorAll('#monthlyBody tr').forEach(tr => {
+        rows.push(Array.from(tr.children).map(td => td.textContent));
+      });
+      const csv = rows.map(r => r.join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `rapport_${document.getElementById('monthInput').value}.csv`;
+      a.click();
+    };
+
+    const exportAnalyticsExcel = () => {
+      const salesByMonth = {}, benByMonth = {};
+      clients.forEach(c => {
+        const month = (c.date || '').slice(0, 7);
+        salesByMonth[month] = (salesByMonth[month] || 0) + (c.prixVente || 0);
+        benByMonth[month] = (benByMonth[month] || 0) + ((c.prixVente || 0) - (c.prixAchat || 0));
+      });
+      const months = Object.keys(salesByMonth).sort();
+      const rows = [['Mois', 'Ventes', 'Bénéfices']];
+      months.forEach(m => rows.push([m, salesByMonth[m], benByMonth[m]]));
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      XLSX.utils.book_append_sheet(wb, ws, 'Analytics');
+      XLSX.writeFile(wb, `analytics_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    };
+
+    const populateInvoice = () => {
+      const sel = document.getElementById('selectClient');
+      sel.innerHTML = '<option value="">Sélectionner un client...</option>';
+      clients.forEach(c => {
+        const o = document.createElement('option');
+        o.value = c.id;
+        o.textContent = `${c.nom} — ${summaryProduits(c)}`;
+        sel.appendChild(o);
+      });
+    };
+
+    const switchTab = (tabId) => {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      
+      document.getElementById(tabId).classList.add('active');
+      document.querySelector(`.tab-btn[onclick*="${tabId}"]`)?.classList.add('active');
+
+      if (tabId === 'clients') renderClients();
+      if (tabId === 'clientsSoldes') renderClientsSoldes();
+      if (tabId === 'stats') renderStats();
+      if (tabId === 'rappels') renderReminders();
+      if (tabId === 'rapport') renderMonthly();
+      if (tabId === 'facture') {
+        // filterClients() reconstruit le select ET initialise le compteur
+        filterClients();
+      }
+      if (tabId === 'analytics') renderAnalytics();
+      if (tabId === 'comm') {
+        const tmpl = localStorage.getItem('sbat_comm_template');
+        if (tmpl) document.getElementById('commMessage').value = tmpl;
+      }
+    };
+
+    const init = () => {
+      document.getElementById('dateVente').valueAsDate = new Date();
+
+      // #3 — Rapport mensuel : initialiser au mois courant
+      const nowYM = new Date().toISOString().slice(0, 7);
+      const monthEl = document.getElementById('monthInput');
+      if (monthEl && !monthEl.value) monthEl.value = nowYM;
+
+      addProduit();
+      renderClients();
+      renderClientsSoldes();
+      populateInvoice();
+      filterClients();
+      togglePaymentFields();
+      loadStoredLogo();
+      
+      if (localStorage.getItem('sbat_dark') === 'true') {
+        document.body.classList.add('dark');
+        document.getElementById('darkToggle').checked = true;
+      }
+    };
+
+    window.addEventListener('load', init);
+  </script>
+
+  <!-- Modal de paiement des échéances -->
+  <div class="payment-modal" id="paymentModal">
+    <div class="payment-modal-content">
+      <div class="payment-modal-header">
+        <h3>💰 Gérer les paiements</h3>
+        <butto
