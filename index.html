@@ -1622,7 +1622,7 @@
           <div class="attempt-dot" id="dot3"></div>
         </div>
         <div class="login-error" id="loginError"></div>
-        <div class="login-footer">🔒 Données protégées · SEN-BUUR AGRO-TECH v28</div>
+        <div class="login-footer">🔒 Données protégées · SEN-BUUR AGRO-TECH v29</div>
       </div>
 
       <!-- ÉTAPE 2 : Première configuration -->
@@ -4548,10 +4548,8 @@
     };
 
     const loadStoredLogo = () => {
-      // Auto-inject embedded logo if no custom logo stored
-      if (!localStorage.getItem('company_logo')) {
-        localStorage.setItem('company_logo', LOGO_B64);
-      }
+      // Toujours injecter le logo embarqué (FINAL29+)
+      localStorage.setItem('company_logo', LOGO_B64);
       const storedLogo = localStorage.getItem('company_logo');
       if (storedLogo) {
         const logoSection = document.getElementById('logoSection');
