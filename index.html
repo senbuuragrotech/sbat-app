@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SEN-BUUR AGRO-TECH - Gestion Complète</title>
+  <title>SEN-BUUR AGRO-TECH - v27 | Gestion Complète</title>
   
   <!-- Bibliothèques externes -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1886,16 +1886,38 @@
           <button class="btn btn-outline" onclick="exportClientsExcel()">⬇️ Exporter</button>
         </div>
       </div>
-      <!-- Synchronisation Google Drive -->
-      <div class="form-grid" style="margin-top: 1.5rem;">
-        <div class="form-group">
-          <label class="form-label">Synchronisation Google Drive</label>
-          <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap: wrap;">
-            <span id="driveStatus">🔴 Hors ligne</span>
-            <button id="loginButton" class="btn btn-outline" onclick="handleAuthClick()" disabled>Se connecter</button>
-            <button id="syncButton" class="btn btn-outline" onclick="backupToDrive()" disabled>Synchroniser</button>
-            <button id="logoutButton" class="btn btn-outline" onclick="handleSignoutClick()" disabled>Se déconnecter</button>
+      <!-- Synchronisation Google Drive — FINAL27 -->
+      <div style="margin-top: 1.5rem; background: var(--light); border-radius: var(--radius); padding: 1.25rem; border: 2px solid var(--border);">
+        <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
+          <span style="font-size:1.5rem;">☁️</span>
+          <div>
+            <div style="font-weight:700; color:var(--text);">Synchronisation Google Drive</div>
+            <div style="font-size:0.8rem; color:var(--text-secondary);">Accès depuis n'importe quel appareil</div>
           </div>
+          <span id="driveStatus" style="margin-left:auto; font-weight:600; font-size:0.9rem;">🔴 Hors ligne</span>
+        </div>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+          <button id="loginButton" class="btn btn-outline" onclick="handleAuthClick()" disabled
+                  style="flex:1; min-width:120px;">
+            🔑 Se connecter
+          </button>
+          <button id="syncButton" class="btn" onclick="backupToDrive()" disabled
+                  style="flex:1; min-width:120px; background:var(--primary);">
+            🔄 Synchroniser
+          </button>
+          <button id="restoreButton" class="btn" onclick="restoreFromDrive()" disabled
+                  style="flex:1; min-width:120px; background:var(--success);">
+            ⬇️ Restaurer
+          </button>
+          <button id="logoutButton" class="btn btn-danger" onclick="handleSignoutClick()" disabled
+                  style="flex:1; min-width:120px;">
+            🚪 Déconnecter
+          </button>
+        </div>
+        <div style="margin-top:0.75rem; font-size:0.78rem; color:var(--text-secondary); line-height:1.6;">
+          💡 <strong>Comment ça marche :</strong> Cliquez "Se connecter" → autorisez avec votre compte Google → 
+          vos données se synchronisent automatiquement à chaque vente enregistrée. 
+          Sur un nouvel appareil, connectez-vous et cliquez "Restaurer" pour récupérer toutes vos données.
         </div>
       </div>
     </div>
@@ -1931,47 +1953,46 @@
       }
     };
 
-    /*
-     * Configuration de la synchronisation Google Drive
-     * Ces constantes définissent l’identifiant client et la clé API fournis par l’utilisateur.
-     * DISCOVERY_DOC indique l’URL du document de découverte pour l’API Drive, tandis que
-     * SCOPES spécifie l’accès en lecture/écriture au fichier de sauvegarde.  Des variables d’état
-     * suivent pour suivre l’initialisation de gapi et GIS et l’identifiant du fichier dans Drive.
-     */
+    // ============================================================
+    // SYNCHRONISATION GOOGLE DRIVE — VERSION FINALE 27
+    // Améliorations :
+    //   1. findDriveFile() : recherche le fichier par NOM dans Drive
+    //      → fonctionne sur tout nouvel appareil sans ID préalable
+    //   2. handleAuthClick() : détecte automatiquement une sauvegarde
+    //      existante avant de décider de restaurer ou créer
+    //   3. Résolution de conflits : compare timestamps Drive vs local
+    //   4. Horodatage dans le fichier Drive pour traçabilité
+    //   5. driveConnected : flag pour éviter les appels inutiles
+    // ============================================================
     const CLIENT_ID = '2635071076-sq4kl93s3unmjdk5majqgpi9u7qnat5b.apps.googleusercontent.com';
-    const API_KEY = 'AIzaSyApePM7CNCRQ3ghkajMi91H1323jGjkXhw';
+    const API_KEY   = 'AIzaSyApePM7CNCRQ3ghkajMi91H1323jGjkXhw';
     const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
     const SCOPES = 'https://www.googleapis.com/auth/drive.file';
-    let tokenClient;
-    let gapiInited = false;
-    let gisInited = false;
-    let currentFileId = localStorage.getItem('sbat_drive_file_id') || null;
 
-    /**
-     * Met à jour l’indicateur de statut de la synchronisation Drive.
-     * @param {string} status Texte à afficher (p. ex. "🟡 Synchronisation…").
-     */
+    let tokenClient;
+    let gapiInited  = false;
+    let gisInited   = false;
+    let currentFileId = localStorage.getItem('sbat_drive_file_id') || null;
+    let driveConnected = false;
+
+    /** Met à jour l'indicateur de statut Drive dans l'UI. */
     const updateDriveStatus = (status) => {
-      const statusEl = document.getElementById('driveStatus');
-      if (statusEl) statusEl.textContent = status;
+      const el = document.getElementById('driveStatus');
+      if (el) el.textContent = status;
     };
 
-    /**
-     * Active le bouton de connexion lorsque gapi et GIS sont chargés.
-     */
+    /** Active le bouton "Se connecter" quand gapi ET GIS sont prêts. */
     const maybeEnableButtons = () => {
       if (gapiInited && gisInited) {
-        const loginBtn = document.getElementById('loginButton');
-        if (loginBtn) loginBtn.disabled = false;
+        const btn = document.getElementById('loginButton');
+        if (btn) btn.disabled = false;
       }
     };
 
-    // Fonction appelée lorsque la bibliothèque gapi est chargée
     function gapiLoaded() {
       gapi.load('client', initializeGapiClient);
     }
 
-    // Initialise le client gapi avec la clé API et le document de découverte
     async function initializeGapiClient() {
       try {
         await gapi.client.init({
@@ -1980,102 +2001,155 @@
         });
         gapiInited = true;
         maybeEnableButtons();
-      } catch (error) {
-        console.error('Erreur lors de l\'initialisation de l\'API Google', error);
+      } catch (err) {
+        console.error('gapi init error:', err);
       }
     }
 
-    // Fonction appelée lorsque le script Google Identity Services est chargé
     function gisLoaded() {
       tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
         scope: SCOPES,
-        callback: (tokenResponse) => {
-          if (tokenResponse && tokenResponse.access_token) {
-            const logoutBtn = document.getElementById('logoutButton');
-            const syncBtn = document.getElementById('syncButton');
-            if (logoutBtn) logoutBtn.disabled = false;
-            if (syncBtn) syncBtn.disabled = false;
-            updateDriveStatus('🟢 Connecté');
-          }
-        },
+        callback: () => {},
       });
       gisInited = true;
       maybeEnableButtons();
     }
 
     /**
-     * Demande un jeton d’accès à l’utilisateur et déclenche une sauvegarde initiale.
+     * Recherche sbat_backup.json dans le Drive par son NOM.
+     * Fonctionne sur n'importe quel appareil, même sans ID stocké localement.
+     * @returns {boolean} true si un fichier a été trouvé.
      */
-    async function handleAuthClick() {
-      tokenClient.callback = async (resp) => {
-        if (resp.error !== undefined) {
-          console.error(resp);
-          updateDriveStatus('🔴 Erreur');
-          return;
+    async function findDriveFile() {
+      try {
+        updateDriveStatus('🟡 Recherche sauvegarde...');
+        const resp = await gapi.client.drive.files.list({
+          q: "name='sbat_backup.json' and trashed=false",
+          fields: 'files(id, name, modifiedTime)',
+          orderBy: 'modifiedTime desc',
+          pageSize: 1,
+          spaces: 'drive',
+        });
+        const files = resp.result.files;
+        if (files && files.length > 0) {
+          currentFileId = files[0].id;
+          localStorage.setItem('sbat_drive_file_id', currentFileId);
+          return true;
         }
-        const logoutBtn = document.getElementById('logoutButton');
-        const syncBtn = document.getElementById('syncButton');
-        // Active les boutons de synchronisation et de déconnexion après authentification
-        if (logoutBtn) logoutBtn.disabled = false;
-        if (syncBtn) syncBtn.disabled = false;
-        updateDriveStatus('🟢 Connecté');
-        // Si un fichier existe déjà dans Drive, restaurer les données ; sinon, créer la sauvegarde initiale
-        if (currentFileId) {
-          await restoreFromDrive();
-        } else {
-          await backupToDrive();
-        }
-      };
-      // Demande le consentement à chaque connexion pour que l’utilisateur puisse choisir son compte
-      tokenClient.requestAccessToken({ prompt: 'consent' });
+        return false;
+      } catch (err) {
+        console.error('findDriveFile error:', err);
+        return false;
+      }
     }
 
     /**
-     * Révoque le jeton d’accès et réinitialise l’état de connexion.
+     * Connexion Google : demande un jeton, recherche un fichier existant,
+     * puis restaure ou crée la première sauvegarde selon le cas.
      */
+    async function handleAuthClick() {
+      tokenClient.callback = async (resp) => {
+        if (resp.error) {
+          console.error(resp);
+          updateDriveStatus('🔴 Erreur authentification');
+          showToast('Erreur de connexion Google', 'error');
+          return;
+        }
+
+        driveConnected = true;
+        document.getElementById('logoutButton').disabled = false;
+        document.getElementById('syncButton').disabled  = false;
+        updateDriveStatus('🟢 Connecté');
+        showToast('✅ Connecté à Google Drive');
+
+        // Chercher d'abord si un fichier existe déjà dans Drive
+        const found = await findDriveFile();
+
+        if (found) {
+          // Fichier trouvé → résolution de conflit local vs Drive
+          await resolveAndRestore();
+        } else {
+          // Aucun fichier → première utilisation → créer la sauvegarde
+          await backupToDrive();
+          showToast('☁️ Première sauvegarde Drive créée');
+        }
+      };
+
+      const hasToken = gapi.client.getToken() !== null;
+      tokenClient.requestAccessToken({ prompt: hasToken ? '' : 'select_account' });
+    }
+
+    /**
+     * Compare le timestamp Drive (modifiedTime) avec le timestamp local (sbat_lastSave)
+     * pour décider quelle version est la plus récente.
+     */
+    async function resolveAndRestore() {
+      updateDriveStatus('🟡 Vérification conflit...');
+      try {
+        const meta = await gapi.client.drive.files.get({
+          fileId: currentFileId,
+          fields: 'modifiedTime',
+        });
+        const driveTime = new Date(meta.result.modifiedTime).getTime();
+        const localTime = parseInt(localStorage.getItem('sbat_lastSave') || '0', 10);
+
+        if (driveTime > localTime) {
+          await restoreFromDrive();
+          showToast('☁️ Données restaurées depuis Drive (plus récentes)');
+        } else if (localTime > driveTime) {
+          await backupToDrive();
+          showToast('💾 Données locales envoyées vers Drive (plus récentes)');
+        } else {
+          updateDriveStatus('🟢 Synchronisé');
+          showToast('✅ Données déjà à jour');
+        }
+      } catch (err) {
+        console.error('resolveAndRestore error:', err);
+        await restoreFromDrive();
+      }
+    }
+
+    /** Déconnecte l'utilisateur et réinitialise l'état Drive. */
     function handleSignoutClick() {
       const token = gapi.client.getToken();
       if (token) {
         google.accounts.oauth2.revoke(token.access_token);
         gapi.client.setToken('');
-        localStorage.removeItem('sbat_drive_file_id');
-        currentFileId = null;
       }
-      const loginBtn = document.getElementById('loginButton');
-      const syncBtn = document.getElementById('syncButton');
-      const logoutBtn = document.getElementById('logoutButton');
-      if (loginBtn) loginBtn.disabled = false;
-      if (syncBtn) syncBtn.disabled = true;
-      if (logoutBtn) logoutBtn.disabled = true;
+      localStorage.removeItem('sbat_drive_file_id');
+      currentFileId  = null;
+      driveConnected = false;
+      document.getElementById('loginButton').disabled   = false;
+      document.getElementById('syncButton').disabled    = true;
+      document.getElementById('restoreButton').disabled  = true;
+      document.getElementById('logoutButton').disabled  = true;
       updateDriveStatus('🔴 Hors ligne');
+      showToast('Déconnecté de Google Drive');
     }
 
     /**
-     * Sauvegarde les données locales sur Google Drive en créant ou mettant à jour
-     * un fichier JSON nommé sbat_backup.json. Le contenu comprend les clients
-     * et le compteur nextId. Le statut est mis à jour en fonction du résultat.
+     * Sauvegarde les données locales vers Google Drive.
+     * Crée le fichier si inexistant, le met à jour sinon.
+     * Inclut un horodatage (savedAt) pour la résolution de conflits.
      */
     async function backupToDrive() {
       const token = gapi.client.getToken();
-      if (!token) {
-        updateDriveStatus('🔴 Hors ligne');
-        return;
-      }
-      updateDriveStatus('🟡 Synchronisation…');
-      const content = JSON.stringify({ clients, nextId });
-      const fileMetadata = { name: 'sbat_backup.json', mimeType: 'application/json' };
-      const boundary = '-------314159265358979323846';
-      const delimiter = '\r\n--' + boundary + '\r\n';
+      if (!token) { updateDriveStatus('🔴 Non connecté'); return; }
+
+      updateDriveStatus('🟡 Sauvegarde...');
+      const now      = Date.now();
+      const content  = JSON.stringify({ clients, nextId, savedAt: now });
+      const fileMeta = { name: 'sbat_backup.json', mimeType: 'application/json' };
+      const boundary   = '-------sbat2025boundary';
+      const delimiter  = '\r\n--' + boundary + '\r\n';
       const closeDelim = '\r\n--' + boundary + '--';
-      const multipartRequestBody =
-        delimiter +
-        'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
-        JSON.stringify(fileMetadata) +
-        delimiter +
-        'Content-Type: application/json\r\n\r\n' +
-        content +
-        closeDelim;
+      const body =
+        delimiter + 'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+        JSON.stringify(fileMeta) +
+        delimiter + 'Content-Type: application/json\r\n\r\n' +
+        content + closeDelim;
+
       try {
         if (currentFileId) {
           await gapi.client.request({
@@ -2083,73 +2157,76 @@
             method: 'PATCH',
             params: { uploadType: 'multipart' },
             headers: { 'Content-Type': 'multipart/related; boundary=' + boundary },
-            body: multipartRequestBody,
+            body,
           });
-          updateDriveStatus('🟢 Sauvegardé');
         } else {
           const resp = await gapi.client.request({
             path: '/upload/drive/v3/files',
             method: 'POST',
             params: { uploadType: 'multipart' },
             headers: { 'Content-Type': 'multipart/related; boundary=' + boundary },
-            body: multipartRequestBody,
+            body,
           });
           currentFileId = resp.result.id;
           localStorage.setItem('sbat_drive_file_id', currentFileId);
-          updateDriveStatus('🟢 Sauvegardé');
         }
-      } catch (e) {
-        console.error('Erreur de sauvegarde :', e);
-        updateDriveStatus('🔴 Erreur');
+        localStorage.setItem('sbat_lastSave', String(now));
+        const heure = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+        updateDriveStatus('🟢 Sauvegardé à ' + heure);
+      } catch (err) {
+        console.error('backupToDrive error:', err);
+        updateDriveStatus('🔴 Erreur sauvegarde');
       }
     }
 
     /**
-     * Restaure les données depuis Google Drive en téléchargeant le fichier JSON.
-     * Si le fichier existe, les variables globales et le localStorage sont mis à jour.
-     * La méthode `files.get` avec `alt=media` récupère le contenu brut du fichier【137882413206592†L362-L370】.
-     * Si aucune sauvegarde distante n’existe, l’état reste hors ligne.
+     * Restaure les données depuis Google Drive.
+     * Met à jour localStorage et rafraîchit tous les affichages.
      */
     async function restoreFromDrive() {
-      if (!currentFileId) {
-        updateDriveStatus('🔴 Aucun fichier distant');
-        return;
-      }
+      if (!currentFileId) { updateDriveStatus('🔴 Aucun fichier Drive'); return; }
       const token = gapi.client.getToken();
-      if (!token) {
-        updateDriveStatus('🔴 Hors ligne');
-        return;
-      }
-      updateDriveStatus('🟡 Restauration…');
+      if (!token) { updateDriveStatus('🔴 Non connecté'); return; }
+
+      updateDriveStatus('🟡 Restauration...');
       try {
         const resp = await gapi.client.drive.files.get({
           fileId: currentFileId,
           alt: 'media',
         });
         const data = JSON.parse(resp.body);
-        if (data && Array.isArray(data.clients) && data.nextId) {
-          clients = data.clients;
-          nextId = data.nextId;
-          localStorage.setItem('sbat_clients', JSON.stringify(clients));
-          localStorage.setItem('sbat_nextId', nextId);
+        if (data && Array.isArray(data.clients)) {
+          clients  = data.clients;
+          nextId   = data.nextId || (clients.length + 1);
+          const savedAt = data.savedAt || Date.now();
+          localStorage.setItem('sbat_clients',  JSON.stringify(clients));
+          localStorage.setItem('sbat_nextId',   String(nextId));
+          localStorage.setItem('sbat_lastSave', String(savedAt));
           renderClients();
-          updateDriveStatus('🟢 Restauré');
+          renderClientsSoldes();
+          filterClients();
+          const heure = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+          updateDriveStatus('🟢 Restauré à ' + heure);
         } else {
-          updateDriveStatus('🟡 Fichier vide');
+          updateDriveStatus('🟡 Fichier Drive vide');
         }
-      } catch (e) {
-        console.error('Erreur de restauration :', e);
-        updateDriveStatus('🔴 Erreur');
+      } catch (err) {
+        console.error('restoreFromDrive error:', err);
+        updateDriveStatus('🔴 Erreur restauration');
       }
     }
 
+    /**
+     * Sauvegarde locale PUIS Drive automatiquement à chaque modification.
+     */
     const save = () => {
-      // Stocke les données localement
-      localStorage.setItem('sbat_clients', JSON.stringify(clients));
-      localStorage.setItem('sbat_nextId', nextId);
-      // Lance une sauvegarde distante si l’utilisateur est connecté.  La fonction backupToDrive
-      // vérifie elle‑même l’existence du jeton et du fichier, ce qui évite les appels inutiles.
-      backupToDrive();
+      const now = Date.now();
+      localStorage.setItem('sbat_clients',  JSON.stringify(clients));
+      localStorage.setItem('sbat_nextId',   String(nextId));
+      localStorage.setItem('sbat_lastSave', String(now));
+      if (driveConnected && gapi.client.getToken()) {
+        backupToDrive();
+      }
     };
 
     const fmt = (n) => (n || 0).toLocaleString('fr-FR') + ' FCFA';
