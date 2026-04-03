@@ -6332,6 +6332,23 @@
     // ══════════════════════════════════════════════════════════════════
 
 
+    /**
+     * Précharge toutes les images d'un élément HTML avant capture html2canvas.
+     * Garantit que logo et cachet sont visibles dans le JPEG final.
+     */
+    const preloadImages = (el) => {
+      const imgs = Array.from(el.querySelectorAll('img'));
+      return Promise.all(imgs.map(img => new Promise(resolve => {
+        if (!img.src || img.complete) { resolve(); return; }
+        // Forcer le rechargement de l'image en mémoire via un objet Image
+        const tmp = new Image();
+        tmp.crossOrigin = 'anonymous';
+        tmp.onload  = resolve;
+        tmp.onerror = resolve; // continuer même en cas d'erreur
+        tmp.src = img.src;
+      })));
+    };
+
     /** Télécharge la facture complète en JPEG haute résolution */
     const downloadFactureJPEG = async () => {
       const btn = event.currentTarget;
@@ -6341,7 +6358,13 @@
       try {
         await loadHtml2Canvas();
         const el = document.getElementById('invoiceContent');
-        // Masquer les boutons d'action pendant la capture
+
+        // S'assurer que logo et cachet sont chargés
+        injectCachet();
+        await preloadImages(el);
+        // Petite pause pour laisser le navigateur rendre les images
+        await new Promise(r => setTimeout(r, 300));
+
         const actionBtns = el.querySelector('.action-buttons-modern');
         if (actionBtns) actionBtns.style.visibility = 'hidden';
 
@@ -6349,13 +6372,24 @@
           scale: 3,
           backgroundColor: '#ffffff',
           useCORS: true,
+          allowTaint: true,
           logging: false,
           windowWidth: 900,
+          imageTimeout: 15000,
+          onclone: (doc) => {
+            // Dans le clone, ré-injecter le cachet et le logo
+            const cachet = doc.getElementById('factureCachet');
+            if (cachet) cachet.src = CACHET_B64;
+            const logo = doc.getElementById('logoSection');
+            if (logo) {
+              const logoImg = logo.querySelector('img');
+              if (logoImg) logoImg.src = LOGO_B64;
+            }
+          }
         });
 
         if (actionBtns) actionBtns.style.visibility = '';
 
-        // Récupérer le numéro de facture pour le nom du fichier
         const facNum = document.getElementById('factNum')?.textContent || Date.now();
         const link = document.createElement('a');
         link.download = 'facture_' + facNum + '.jpg';
@@ -6387,9 +6421,30 @@
       try {
         await loadHtml2Canvas();
         const el = document.getElementById('recuContent');
+
+        // Précharger toutes les images
+        injectCachet();
+        await preloadImages(el);
+        await new Promise(r => setTimeout(r, 300));
+
         const toHide = el.querySelectorAll('.recu-actions, .recu-download-btns');
         toHide.forEach(b => b.style.visibility = 'hidden');
-        const canvas = await window.html2canvas(el, { scale: 3, backgroundColor: '#ffffff', useCORS: true, logging: false });
+
+        const canvas = await window.html2canvas(el, {
+          scale: 3,
+          backgroundColor: '#ffffff',
+          useCORS: true,
+          allowTaint: true,
+          logging: false,
+          imageTimeout: 15000,
+          onclone: (doc) => {
+            const cachet = doc.getElementById('recuCachet');
+            if (cachet) cachet.src = CACHET_B64;
+            const logo = doc.getElementById('recuLogo');
+            if (logo) logo.src = LOGO_B64;
+          }
+        });
+
         toHide.forEach(b => b.style.visibility = '');
         const link = document.createElement('a');
         link.download = 'recu_sbat_' + Date.now() + '.jpg';
