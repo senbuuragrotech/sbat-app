@@ -2485,7 +2485,7 @@
 
         <!-- CACHET OFFICIEL -->
         <div class="cachet-zone">
-          <img class="cachet-img" id="factureCachet" src="" alt="Cachet SEN-BUUR AGRO-TECH">
+          <img class="cachet-img" id="factureCachet" src="" alt="Cachet SEN-BUUR AGRO-TECH" onerror="this.style.display='none'">
         </div>
 
         <div id="engagementSection" class="engagement">
@@ -2663,7 +2663,7 @@
             Merci pour votre confiance 🙏<br>
             NINEA : 008835459 — Tél : 77 264 12 09 / 76 167 07 60
           </div>
-          <img class="cachet-img" id="recuCachet" src="" alt="Cachet"
+          <img class="cachet-img" id="recuCachet" src="" alt="Cachet" onerror="this.style.display='none'"
                style="width:80px;height:80px;margin-left:0.5rem;">
         </div>
         <div class="recu-actions" style="margin-top:0.75rem;">
@@ -5988,6 +5988,8 @@
       const cachetRecu = document.getElementById('recuCachet');
       if (cachetRecu) cachetRecu.src = CACHET_B64;
 
+      // Cachet reçu
+      injectCachet();
       document.getElementById('recuModal').classList.add('active');
     };
 
@@ -6434,10 +6436,19 @@
     };
 
     // appInit() est appelé APRÈS connexion réussie (déclenchée par unlockApp())
+    // Injecte le cachet dans toutes les zones prévues
+    const injectCachet = () => {
+      ['factureCachet', 'recuCachet'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.src = CACHET_B64;
+      });
+    };
+
     const appInit = () => {
       init();
       initTimeoutButtons();
       renderMobileKpi();
+      injectCachet();
       // Mettre à jour le badge Drive dans le header
       const badge = document.getElementById('driveHeaderStatus');
       if (badge) badge.textContent = '☁️ Drive';
