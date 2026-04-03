@@ -5614,26 +5614,7 @@
         print-color-adjust: exact !important;
       }
     }
-    /* Boutons téléchargement reçu */
-    .recu-download-btns {
-      display: flex;
-      gap: 0.5rem;
-      margin-top: 0.5rem;
-    }
-    .btn-download {
-      flex: 1;
-      padding: 0.6rem 0.5rem;
-      border: none;
-      border-radius: var(--radius);
-      font-weight: 600;
-      font-size: 0.82rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.35rem;
-    }
+
     .btn-dl-jpeg { background: #f59e0b; color: white; }
     .btn-dl-pdf  { background: #dc2626; color: white; }
     .btn-dl-jpeg:hover { background: #d97706; transform: translateY(-1px); }
@@ -5933,8 +5914,7 @@
     // ══════════════════════════════════════════════════════════════════
 
     const showRecuPaiement = (client, echeanceIdx, montantPaye, methode) => {
-      const logo = localStorage.getItem('company_logo') || '';
-      document.getElementById('recuLogo').src = logo;
+      document.getElementById('recuLogo').src = LOGO_B64;
 
       const dateAujourd = new Date().toLocaleDateString('fr-FR');
       const heureAujourd = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
@@ -6453,6 +6433,8 @@
         showToast('✅ Reçu téléchargé en JPEG');
       } catch(e) {
         console.error(e);
+        el.querySelectorAll('.recu-actions, .recu-download-btns')
+          .forEach(b => b.style.visibility = ''); // restaurer en cas d'erreur
         showToast('Erreur téléchargement JPEG', 'error');
       }
       btn.innerHTML = origText;
@@ -6464,26 +6446,45 @@
       const origText = btn.innerHTML;
       btn.innerHTML = '⏳ Génération...';
       btn.disabled = true;
+      const el = document.getElementById('recuContent');
+      const toHide = el.querySelectorAll('.recu-actions, .recu-download-btns');
       try {
         await loadHtml2Canvas();
-        const el = document.getElementById('recuContent');
-        const toHide = el.querySelectorAll('.recu-actions, .recu-download-btns');
+        injectCachet();
+        await preloadImages(el);
+        await new Promise(r => setTimeout(r, 300));
+
         toHide.forEach(b => b.style.visibility = 'hidden');
-        const canvas = await window.html2canvas(el, { scale: 3, backgroundColor: '#ffffff', useCORS: true, logging: false });
-        toHide.forEach(b => b.style.visibility = '');
+        const canvas = await window.html2canvas(el, {
+          scale: 3, backgroundColor: '#ffffff',
+          useCORS: true, allowTaint: true, logging: false,
+          imageTimeout: 15000,
+          onclone: (doc) => {
+            const c = doc.getElementById('recuCachet');
+            if (c) c.src = CACHET_B64;
+            const l = doc.getElementById('recuLogo');
+            if (l) l.src = LOGO_B64;
+          }
+        });
+        toHide.forEach(b => b.style.visibility = ''); // TOUJOURS restaurer
+
         const imgData = canvas.toDataURL('image/jpeg', 0.95);
         const win = window.open('', '_blank', 'width=600,height=900');
-        if (!win) { showToast('Autorisez les popups pour télécharger le PDF', 'error'); return; }
-        win.document.write('<!DOCTYPE html><html><head><title>Recu SBAT</title>'
-          + '<style>body{margin:0;background:white;}img{max-width:100%;display:block;}'
-          + '@media print{@page{margin:0.3cm;}}</style></head>'
-          + '<body><img src="' + imgData + '" alt="Recu">'
-          + '<script>window.onload=function(){setTimeout(function(){window.print();},500);};<\/script>'
-          + '</body></html>');
-        win.document.close();
-        showToast('✅ Fenêtre ouverte — choisissez "Enregistrer en PDF"');
+        if (!win) {
+          showToast('Autorisez les popups pour le PDF', 'error');
+        } else {
+          win.document.write('<!DOCTYPE html><html><head><title>Recu SBAT</title>'
+            + '<style>body{margin:0;background:white;}img{max-width:100%;display:block;}'
+            + '@media print{@page{margin:0.3cm;}}</style></head>'
+            + '<body><img src="' + imgData + '" alt="Recu">'
+            + '<scr' + 'ipt>window.onload=function(){setTimeout(function(){window.print();},500);};</scr' + 'ipt>'
+            + '</body></html>');
+          win.document.close();
+          showToast('✅ Fenêtre PDF ouverte');
+        }
       } catch(e) {
         console.error(e);
+        toHide.forEach(b => b.style.visibility = ''); // restaurer même en cas d'erreur
         showToast('Erreur PDF', 'error');
       }
       btn.innerHTML = origText;
