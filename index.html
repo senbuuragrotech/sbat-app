@@ -4650,26 +4650,131 @@
       navigator.clipboard.writeText(nums).then(() => showToast('Numéros copiés'));
     };
 
+    /**
+     * Rapport mensuel — FINAL30
+     * Collecte TOUTES les sources de paiement du mois sélectionné :
+     *   1. Acomptes versés à la date de vente
+     *   2. Échéances payées (nouveau format c.echeances[].paid)
+     *   3. Paiements explicites enregistrés via le modal (c.payments[])
+     * Affiche aussi un résumé KPI en haut du tableau.
+     */
     const renderMonthly = () => {
       const ym = document.getElementById('monthInput').value;
       const tbody = document.getElementById('monthlyBody');
+      if (!tbody) return;
       tbody.innerHTML = '';
-      
-      if (!ym) return;
+
+      // S'assurer que le mois est initialisé
+      if (!ym) {
+        const monthEl = document.getElementById('monthInput');
+        if (monthEl) monthEl.value = new Date().toISOString().slice(0, 7);
+        return renderMonthly();
+      }
+
+      const rows = [];
 
       clients.forEach(c => {
-        (c.payments || []).filter(p => (p.date || '').startsWith(ym)).forEach(p => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${c.nom}</td>
-            <td>${summaryProduits(c)}</td>
-            <td>Échéance ${p.echeance}</td>
-            <td>${fmt(p.montant)}</td>
-            <td>${p.mode || '—'}</td>
-            <td>${p.date}</td>
-          `;
-          tbody.appendChild(tr);
+        const produit = summaryProduits(c);
+
+        // ── Source 1 : Acompte versé à la date de vente ──────────────
+        if (c.acompte > 0 && (c.date || '').startsWith(ym)) {
+          rows.push({
+            nom: c.nom,
+            produit,
+            echeance: 'Acompte',
+            montant: c.acompte,
+            mode: c.typePaiement === 'moratoire' ? 'Moratoire' : 'Cash',
+            date: c.date,
+          });
+        }
+
+        // ── Source 2 : Paiements explicites via modal (c.payments) ───
+        (c.payments || []).forEach(p => {
+          if ((p.date || '').startsWith(ym)) {
+            // Éviter les doublons si déjà compté dans les échéances
+            rows.push({
+              nom: c.nom,
+              produit,
+              echeance: 'Échéance ' + p.echeance,
+              montant: p.montant,
+              mode: p.mode || 'Cash',
+              date: p.date,
+            });
+          }
         });
+
+        // ── Source 3 : Échéances marquées payées SANS modal (status=paye) ─
+        // Uniquement si aucun paiement modal n'existe pour cette échéance
+        if (c.echeances && Array.isArray(c.echeances)) {
+          c.echeances.forEach((ech, idx) => {
+            if (ech.status !== 'paye') return;
+            if (!ech.date || !ech.date.startsWith(ym)) return;
+            // Vérifier si ce paiement n'est pas déjà dans c.payments
+            const alreadyCounted = (c.payments || []).some(
+              p => p.echeance === (idx + 1) && (p.date || '').startsWith(ym)
+            );
+            if (!alreadyCounted) {
+              rows.push({
+                nom: c.nom,
+                produit,
+                echeance: 'Échéance ' + (idx + 1),
+                montant: ech.paid || ech.montant,
+                mode: '—',
+                date: ech.date,
+              });
+            }
+          });
+        }
+      });
+
+      // Trier par date décroissante
+      rows.sort((a, b) => b.date.localeCompare(a.date));
+
+      // ── KPI résumé du mois ─────────────────────────────────────────
+      const totalMois = rows.reduce((s, r) => s + r.montant, 0);
+      const nbOps = rows.length;
+
+      // Injecter ou mettre à jour le résumé au-dessus du tableau
+      let kpiEl = document.getElementById('rapportKpi');
+      if (!kpiEl) {
+        kpiEl = document.createElement('div');
+        kpiEl.id = 'rapportKpi';
+        kpiEl.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.75rem;margin-bottom:1rem;';
+        tbody.parentElement.parentElement.insertBefore(kpiEl, tbody.parentElement);
+      }
+      kpiEl.innerHTML = `
+        <div style="background:linear-gradient(135deg,var(--primary),var(--secondary));color:white;padding:1rem;border-radius:var(--radius);text-align:center;">
+          <div style="font-size:1.2rem;font-weight:800;">${fmt(totalMois)}</div>
+          <div style="font-size:0.8rem;opacity:0.9;">💰 Total encaissé</div>
+        </div>
+        <div style="background:var(--white);border:1px solid var(--border);padding:1rem;border-radius:var(--radius);text-align:center;">
+          <div style="font-size:1.2rem;font-weight:800;color:var(--primary);">${nbOps}</div>
+          <div style="font-size:0.8rem;color:var(--text-secondary);">📋 Opérations</div>
+        </div>
+        <div style="background:var(--white);border:1px solid var(--border);padding:1rem;border-radius:var(--radius);text-align:center;">
+          <div style="font-size:1.2rem;font-weight:800;color:var(--success);">${rows.filter(r=>r.echeance==='Acompte').length}</div>
+          <div style="font-size:0.8rem;color:var(--text-secondary);">🆕 Nouvelles ventes</div>
+        </div>
+      `;
+
+      if (rows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-secondary);">
+          Aucun paiement enregistré pour ${ym}
+        </td></tr>`;
+        return;
+      }
+
+      rows.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${r.nom}</strong></td>
+          <td>${r.produit}</td>
+          <td><span class="badge ${r.echeance === 'Acompte' ? 'badge-info' : 'badge-success'}">${r.echeance}</span></td>
+          <td><strong style="color:var(--success);">${fmt(r.montant)}</strong></td>
+          <td>${r.mode}</td>
+          <td>${r.date}</td>
+        `;
+        tbody.appendChild(tr);
       });
     };
 
@@ -5599,17 +5704,19 @@
     };
 
     const exportMonthly = () => {
-      const rows = [['Client', 'Produit', 'Échéance', 'Montant', 'Méthode', 'Date']];
+      const rows = [['Client', 'Produit', 'Échéance', 'Montant (FCFA)', 'Méthode', 'Date']];
       document.querySelectorAll('#monthlyBody tr').forEach(tr => {
-        rows.push(Array.from(tr.children).map(td => td.textContent));
+        const cells = Array.from(tr.children).map(td => td.textContent.trim().replace(/,/g,''));
+        if (cells.length === 6) rows.push(cells);
       });
       const csv = rows.map(r => r.join(',')).join('\n');
-      const blob = new Blob([csv], { type: 'text/csv' });
+      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = `rapport_${document.getElementById('monthInput').value}.csv`;
       a.click();
+      URL.revokeObjectURL(url);
     };
 
     const exportAnalyticsExcel = () => {
