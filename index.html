@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SEN-BUUR AGRO-TECH - v29 | Gestion Sécurisée</title>
+  <title>SEN-BUUR AGRO-TECH - v30 | Gestion Sécurisée</title>
   
   <!-- Bibliothèques externes -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1592,6 +1592,243 @@
     }
     .lock-indicator:hover { background: rgba(255,255,255,0.35); }
 
+
+    /* ═══════════════════════════════════════════════════
+       FINAL30 — Nouvelles fonctionnalités CSS
+       ═══════════════════════════════════════════════════ */
+
+    /* --- Reçu de paiement --- */
+    .recu-modal {
+      display: none;
+      position: fixed;
+      top:0;left:0;right:0;bottom:0;
+      background: rgba(0,0,0,0.7);
+      z-index: 3000;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .recu-modal.active { display: flex; }
+    .recu-content {
+      background: white;
+      border-radius: var(--radius);
+      padding: 2rem;
+      max-width: 380px;
+      width: 100%;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      animation: modalSlideIn 0.3s ease-out;
+      text-align: center;
+    }
+    .recu-header {
+      border-bottom: 3px solid var(--primary);
+      padding-bottom: 1rem;
+      margin-bottom: 1rem;
+    }
+    .recu-logo { width: 60px; height: 60px; object-fit: contain; margin: 0 auto 0.5rem; display: block; }
+    .recu-company { font-size: 1rem; font-weight: 800; color: var(--primary); }
+    .recu-title { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem; }
+    .recu-body { text-align: left; margin: 1rem 0; }
+    .recu-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.4rem 0;
+      border-bottom: 1px dashed var(--border);
+      font-size: 0.875rem;
+    }
+    .recu-row:last-child { border-bottom: none; }
+    .recu-row .label { color: var(--text-secondary); }
+    .recu-row .value { font-weight: 600; color: var(--text); }
+    .recu-total {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 1rem 0;
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+    .recu-footer {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      margin-top: 1rem;
+      border-top: 1px solid var(--border);
+      padding-top: 0.75rem;
+    }
+    .recu-actions { display: flex; gap: 0.5rem; margin-top: 1rem; }
+    @media print {
+      .recu-modal { display: flex !important; position: static !important; background: none !important; }
+      .recu-content { box-shadow: none !important; max-width: 100% !important; }
+      .recu-actions { display: none !important; }
+    }
+
+    /* --- Historique client --- */
+    .historique-modal {
+      display: none;
+      position: fixed;
+      top:0;left:0;right:0;bottom:0;
+      background: rgba(0,0,0,0.75);
+      z-index: 3000;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+    .historique-modal.active { display: flex; }
+    .historique-content {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      max-width: 700px;
+      width: 100%;
+      margin: auto;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      animation: modalSlideIn 0.3s ease-out;
+    }
+    .historique-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--border);
+    }
+    .historique-section {
+      background: var(--light);
+      border-radius: var(--radius);
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .historique-section h4 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .historique-vente-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .historique-vente-card:hover { border-color: var(--primary); box-shadow: var(--shadow); }
+    .historique-vente-card.active-card { border-color: var(--primary); background: rgba(30,64,175,0.04); }
+    .timeline-payment {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px dashed var(--border);
+      font-size: 0.825rem;
+    }
+    .timeline-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--success);
+      flex-shrink: 0;
+    }
+
+    /* --- Vente rapide --- */
+    .vente-rapide-modal {
+      display: none;
+      position: fixed;
+      top:0;left:0;right:0;bottom:0;
+      background: rgba(0,0,0,0.75);
+      z-index: 3000;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .vente-rapide-modal.active { display: flex; }
+    .vente-rapide-content {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      animation: modalSlideIn 0.3s ease-out;
+    }
+    .vr-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid var(--border);
+    }
+    .vr-header h3 { font-size: 1.1rem; font-weight: 700; color: var(--text); }
+
+    /* --- Dashboard mobile widget --- */
+    .mobile-kpi-strip {
+      display: none;
+    }
+    @media (max-width: 768px) {
+      .mobile-kpi-strip {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        background: var(--light);
+        border-bottom: 1px solid var(--border);
+      }
+    }
+    .mobile-kpi-item {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 0.6rem 0.75rem;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .mobile-kpi-val {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .mobile-kpi-lbl {
+      font-size: 0.65rem;
+      color: var(--text-secondary);
+      margin-top: 0.15rem;
+    }
+
+    /* --- Corbeille --- */
+    .trash-empty {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-secondary);
+    }
+    .trash-empty-icon { font-size: 3rem; margin-bottom: 0.5rem; }
+    .trash-card {
+      background: var(--light);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      opacity: 0.85;
+    }
+    .trash-card:hover { opacity: 1; border-color: var(--warning); }
+    .trash-info { flex: 1; min-width: 200px; }
+    .trash-name { font-weight: 700; color: var(--text); font-size: 0.95rem; }
+    .trash-meta { font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.2rem; }
+    .trash-deleted { font-size: 0.72rem; color: var(--danger); margin-top: 0.2rem; }
+    .trash-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+
   </style>
 </head>
 <body>
@@ -1622,7 +1859,7 @@
           <div class="attempt-dot" id="dot3"></div>
         </div>
         <div class="login-error" id="loginError"></div>
-        <div class="login-footer">🔒 Données protégées · SEN-BUUR AGRO-TECH v29</div>
+        <div class="login-footer">🔒 Données protégées · SEN-BUUR AGRO-TECH v30</div>
       </div>
 
       <!-- ÉTAPE 2 : Première configuration -->
@@ -1675,12 +1912,33 @@
         <h1 class="app-title">🌾 SEN-BUUR AGRO-TECH</h1>
         <p style="font-size: 0.875rem; opacity: 0.9;">Gestion complète des ventes</p>
       </div>
-      <div style="display:flex;gap:0.5rem;align-items:center;">
+      <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
         <button class="lock-indicator" id="driveHeaderStatus" title="Statut Drive">☁️ Drive</button>
-        <button class="lock-indicator" onclick="manualLock()" title="Verrouiller l'application">🔒 Verrouiller</button>
-        <button class="btn btn-sm" onclick="toggleDarkMode()" style="background: rgba(255,255,255,0.2);">🌓 Mode</button>
+        <button class="lock-indicator" onclick="openVenteRapide()" title="Vente rapide" style="background:rgba(245,158,11,0.85);">⚡ Rapide</button>
+        <button class="lock-indicator" onclick="manualLock()" title="Verrouiller">🔒</button>
+        <button class="btn btn-sm" onclick="toggleDarkMode()" style="background: rgba(255,255,255,0.2);">🌓</button>
       </div>
     </header>
+
+    <!-- DASHBOARD MOBILE — bande KPI toujours visible sur mobile -->
+    <div class="mobile-kpi-strip" id="mobileKpiStrip">
+      <div class="mobile-kpi-item">
+        <div class="mobile-kpi-val" id="mkpiCreances">—</div>
+        <div class="mobile-kpi-lbl">💰 Créances</div>
+      </div>
+      <div class="mobile-kpi-item">
+        <div class="mobile-kpi-val" id="mkpiVentes">—</div>
+        <div class="mobile-kpi-lbl">📦 Ventes</div>
+      </div>
+      <div class="mobile-kpi-item">
+        <div class="mobile-kpi-val" id="mkpiProchain">—</div>
+        <div class="mobile-kpi-lbl">📅 Prochain</div>
+      </div>
+      <div class="mobile-kpi-item">
+        <div class="mobile-kpi-val" id="mkpiSoldes">—</div>
+        <div class="mobile-kpi-lbl">✅ Soldés</div>
+      </div>
+    </div>
 
     <nav class="nav-tabs">
       <button class="tab-btn active" onclick="switchTab('vente')">📝 Vente</button>
@@ -1693,6 +1951,7 @@
       <button class="tab-btn" onclick="switchTab('analytics')">📈 Analytics</button>
       <button class="tab-btn" onclick="switchTab('comm')">📱 Communication</button>
       <button class="tab-btn" onclick="switchTab('options')">⚙️ Options</button>
+      <button class="tab-btn" onclick="switchTab('corbeille')">🗑️ Corbeille</button>
     </nav>
 
     <!-- NOUVELLE VENTE -->
@@ -2314,6 +2573,123 @@
         </div>
       </div>
     </div>
+
+    <!-- CORBEILLE -->
+    <div class="tab-content" id="corbeille">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+        <h2>🗑️ Corbeille</h2>
+        <div style="display:flex;gap:0.5rem;">
+          <span id="trashCount" style="font-size:0.85rem;color:var(--text-secondary);align-self:center;"></span>
+          <button class="btn btn-danger btn-sm" onclick="emptyTrash()">🗑️ Vider la corbeille</button>
+        </div>
+      </div>
+      <div style="background:var(--light);border-radius:var(--radius);padding:0.75rem 1rem;margin-bottom:1rem;font-size:0.85rem;color:var(--text-secondary);">
+        💡 Les éléments supprimés sont conservés <strong>30 jours</strong>. Après ce délai, ils sont effacés définitivement.
+      </div>
+      <div id="trashBody"></div>
+    </div>
+
+    <!-- MODAL : REÇU DE PAIEMENT -->
+    <div class="recu-modal" id="recuModal">
+      <div class="recu-content" id="recuContent">
+        <div class="recu-header">
+          <img id="recuLogo" class="recu-logo" src="" alt="Logo">
+          <div class="recu-company">SEN-BUUR AGRO-TECH</div>
+          <div class="recu-title">REÇU DE PAIEMENT</div>
+        </div>
+        <div class="recu-body" id="recuBody"></div>
+        <div class="recu-total" id="recuTotal"></div>
+        <div class="recu-footer">
+          Merci pour votre confiance 🙏<br>
+          NINEA : 008835459 — Tél : 77 264 12 09 / 76 167 07 60
+        </div>
+        <div class="recu-actions">
+          <button class="btn btn-sm btn-outline" onclick="window.print()" style="flex:1;">🖨️ Imprimer</button>
+          <button class="btn btn-sm btn-danger" onclick="closeRecuModal()" style="flex:1;">✖ Fermer</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL : HISTORIQUE CLIENT -->
+    <div class="historique-modal" id="historiqueModal">
+      <div class="historique-content">
+        <div class="historique-header">
+          <div>
+            <h3 id="histClientName" style="font-size:1.1rem;font-weight:700;color:var(--primary);"></h3>
+            <div id="histClientTel" style="font-size:0.85rem;color:var(--text-secondary);"></div>
+          </div>
+          <button onclick="closeHistorique()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-secondary);">✕</button>
+        </div>
+        <div id="histBody"></div>
+      </div>
+    </div>
+
+    <!-- MODAL : VENTE RAPIDE -->
+    <div class="vente-rapide-modal" id="venteRapideModal">
+      <div class="vente-rapide-content">
+        <div class="vr-header">
+          <h3>⚡ Vente Rapide</h3>
+          <button onclick="closeVenteRapide()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-secondary);">✕</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:0.75rem;">
+          <div class="form-group autocomplete-container">
+            <label class="form-label">👤 Nom client *</label>
+            <input type="text" class="form-input" id="vrNom" placeholder="Prénom Nom"
+                   oninput="showAutocompleteSuggestions('vrNom','nom')"
+                   onfocus="showAutocompleteSuggestions('vrNom','nom')"
+                   onblur="setTimeout(()=>hideAutocompleteSuggestions('vrNom'),200)">
+            <div id="vrNom-suggestions" class="autocomplete-suggestions"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">📱 Téléphone *</label>
+            <input type="tel" class="form-input" id="vrTel" placeholder="77 XXX XX XX">
+          </div>
+          <div class="form-group">
+            <label class="form-label">📦 Produit *</label>
+            <input type="text" class="form-input" id="vrProduit" placeholder="Ex: iPhone 15, TV 55 pouces...">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+            <div class="form-group">
+              <label class="form-label">🏷️ Catégorie</label>
+              <select class="form-select" id="vrCat">
+                <option value="">—</option>
+                <option value="Téléphone">📱 Téléphone</option>
+                <option value="Ordinateur">💻 Ordinateur</option>
+                <option value="Électroménager">🔌 Électroménager</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">💳 Paiement</label>
+              <select class="form-select" id="vrType" onchange="toggleVrAcompte()">
+                <option value="cash">💵 Cash</option>
+                <option value="moratoire">📅 Moratoire</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+            <div class="form-group">
+              <label class="form-label">💰 Prix achat</label>
+              <input type="number" class="form-input" id="vrAchat" placeholder="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label">💵 Prix vente *</label>
+              <input type="number" class="form-input" id="vrVente" placeholder="0">
+            </div>
+          </div>
+          <div class="form-group" id="vrAcompteGroup">
+            <label class="form-label">💸 Acompte</label>
+            <input type="number" class="form-input" id="vrAcompte" placeholder="0">
+          </div>
+        </div>
+        <div style="display:flex;gap:0.5rem;margin-top:1.25rem;">
+          <button class="btn btn-success" onclick="saveVenteRapide()" style="flex:2;">
+            ⚡ Enregistrer
+          </button>
+          <button class="btn btn-outline" onclick="clearVenteRapide()" style="flex:1;">🧹</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- Chargement des bibliothèques Google API et GIS -->
@@ -3571,6 +3947,7 @@
           <td><strong style="color: ${remaining(c) > 0 ? 'var(--danger)' : 'var(--success)'};">${fmt(remaining(c))}</strong></td>
           <td style="white-space: nowrap;">
             <button class="btn btn-sm btn-outline" onclick="editClient(${c.id})" title="Modifier">✏️</button>
+            <button class="btn btn-sm" onclick="openHistorique(${c.id})" title="Historique" style="background:var(--secondary);color:white;">📋</button>
             <button class="btn btn-sm btn-danger" onclick="deleteClient(${c.id})" title="Supprimer">🗑️</button>
             <button class="btn btn-sm" onclick="goToInvoice(${c.id})" title="Générer facture" style="background:var(--warning);color:white;">🧾</button>
           </td>
@@ -3695,6 +4072,7 @@
           <td><strong style="color: var(--success);">${fmt(remaining(c))}</strong></td>
           <td style="white-space: nowrap;">
             <button class="btn btn-sm btn-outline" onclick="editClient(${c.id})" title="Modifier">✏️</button>
+            <button class="btn btn-sm" onclick="openHistorique(${c.id})" title="Historique" style="background:var(--secondary);color:white;">📋</button>
             <button class="btn btn-sm btn-danger" onclick="deleteClient(${c.id})" title="Supprimer">🗑️</button>
             <button class="btn btn-sm" onclick="goToInvoice(${c.id})" title="Générer facture" style="background:var(--warning);color:white;">🧾</button>
           </td>
@@ -3999,13 +4377,16 @@
       
       save();
       showToast('💰 Paiement enregistré avec succès');
-      
-      // Rafraîchir la modal
+
+      // Afficher le reçu
+      const clientSnapshot = { ...currentPaymentClient };
+      const echIdx = format === 'new' ? index : (oldIndex - 1);
+      showRecuPaiement(clientSnapshot, echIdx, amount, method);
+
+      // Rafraîchir
       closePaymentModal();
-      setTimeout(() => {
-        openPaymentModal(currentPaymentClient.id);
-        renderClients();
-      }, 300);
+      renderClients();
+      renderMobileKpi();
     };
 
     const closePaymentModal = () => {
@@ -4122,11 +4503,18 @@
     };
 
     const deleteClient = (id) => {
-      if (confirm('Supprimer cette vente ?')) {
+      if (confirm('Déplacer cette vente dans la corbeille ?')) {
+        const c = clients.find(x => x.id === id);
+        if (c) {
+          trash.push({ ...c, deletedAt: Date.now() });
+          saveTrash();
+        }
         clients = clients.filter(c => c.id !== id);
         save();
         renderClients();
-        showToast('Vente supprimée');
+        renderClientsSoldes();
+        renderMobileKpi();
+        showToast('🗑️ Déplacé dans la corbeille — Restauration possible');
       }
     };
 
@@ -4790,6 +5178,243 @@
     }
     .lock-indicator:hover { background: rgba(255,255,255,0.35); }
 
+
+    /* ═══════════════════════════════════════════════════
+       FINAL30 — Nouvelles fonctionnalités CSS
+       ═══════════════════════════════════════════════════ */
+
+    /* --- Reçu de paiement --- */
+    .recu-modal {
+      display: none;
+      position: fixed;
+      top:0;left:0;right:0;bottom:0;
+      background: rgba(0,0,0,0.7);
+      z-index: 3000;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .recu-modal.active { display: flex; }
+    .recu-content {
+      background: white;
+      border-radius: var(--radius);
+      padding: 2rem;
+      max-width: 380px;
+      width: 100%;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      animation: modalSlideIn 0.3s ease-out;
+      text-align: center;
+    }
+    .recu-header {
+      border-bottom: 3px solid var(--primary);
+      padding-bottom: 1rem;
+      margin-bottom: 1rem;
+    }
+    .recu-logo { width: 60px; height: 60px; object-fit: contain; margin: 0 auto 0.5rem; display: block; }
+    .recu-company { font-size: 1rem; font-weight: 800; color: var(--primary); }
+    .recu-title { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem; }
+    .recu-body { text-align: left; margin: 1rem 0; }
+    .recu-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.4rem 0;
+      border-bottom: 1px dashed var(--border);
+      font-size: 0.875rem;
+    }
+    .recu-row:last-child { border-bottom: none; }
+    .recu-row .label { color: var(--text-secondary); }
+    .recu-row .value { font-weight: 600; color: var(--text); }
+    .recu-total {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 1rem 0;
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+    .recu-footer {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      margin-top: 1rem;
+      border-top: 1px solid var(--border);
+      padding-top: 0.75rem;
+    }
+    .recu-actions { display: flex; gap: 0.5rem; margin-top: 1rem; }
+    @media print {
+      .recu-modal { display: flex !important; position: static !important; background: none !important; }
+      .recu-content { box-shadow: none !important; max-width: 100% !important; }
+      .recu-actions { display: none !important; }
+    }
+
+    /* --- Historique client --- */
+    .historique-modal {
+      display: none;
+      position: fixed;
+      top:0;left:0;right:0;bottom:0;
+      background: rgba(0,0,0,0.75);
+      z-index: 3000;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+    .historique-modal.active { display: flex; }
+    .historique-content {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      max-width: 700px;
+      width: 100%;
+      margin: auto;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      animation: modalSlideIn 0.3s ease-out;
+    }
+    .historique-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--border);
+    }
+    .historique-section {
+      background: var(--light);
+      border-radius: var(--radius);
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .historique-section h4 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .historique-vente-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .historique-vente-card:hover { border-color: var(--primary); box-shadow: var(--shadow); }
+    .historique-vente-card.active-card { border-color: var(--primary); background: rgba(30,64,175,0.04); }
+    .timeline-payment {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px dashed var(--border);
+      font-size: 0.825rem;
+    }
+    .timeline-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--success);
+      flex-shrink: 0;
+    }
+
+    /* --- Vente rapide --- */
+    .vente-rapide-modal {
+      display: none;
+      position: fixed;
+      top:0;left:0;right:0;bottom:0;
+      background: rgba(0,0,0,0.75);
+      z-index: 3000;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .vente-rapide-modal.active { display: flex; }
+    .vente-rapide-content {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      animation: modalSlideIn 0.3s ease-out;
+    }
+    .vr-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid var(--border);
+    }
+    .vr-header h3 { font-size: 1.1rem; font-weight: 700; color: var(--text); }
+
+    /* --- Dashboard mobile widget --- */
+    .mobile-kpi-strip {
+      display: none;
+    }
+    @media (max-width: 768px) {
+      .mobile-kpi-strip {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        background: var(--light);
+        border-bottom: 1px solid var(--border);
+      }
+    }
+    .mobile-kpi-item {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 0.6rem 0.75rem;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .mobile-kpi-val {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .mobile-kpi-lbl {
+      font-size: 0.65rem;
+      color: var(--text-secondary);
+      margin-top: 0.15rem;
+    }
+
+    /* --- Corbeille --- */
+    .trash-empty {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-secondary);
+    }
+    .trash-empty-icon { font-size: 3rem; margin-bottom: 0.5rem; }
+    .trash-card {
+      background: var(--light);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      opacity: 0.85;
+    }
+    .trash-card:hover { opacity: 1; border-color: var(--warning); }
+    .trash-info { flex: 1; min-width: 200px; }
+    .trash-name { font-weight: 700; color: var(--text); font-size: 0.95rem; }
+    .trash-meta { font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.2rem; }
+    .trash-deleted { font-size: 0.72rem; color: var(--danger); margin-top: 0.2rem; }
+    .trash-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+
   </style>
         </head>
         <body>
@@ -5031,6 +5656,7 @@
         filterClients();
       }
       if (tabId === 'analytics') renderAnalytics();
+      if (tabId === 'corbeille') renderCorbeille();
       if (tabId === 'comm') {
         const tmpl = localStorage.getItem('sbat_comm_template');
         if (tmpl) document.getElementById('commMessage').value = tmpl;
@@ -5048,6 +5674,7 @@
       addProduit();
       renderClients();
       renderClientsSoldes();
+      renderMobileKpi();
       populateInvoice();
       filterClients();
       togglePaymentFields();
@@ -5059,10 +5686,420 @@
       }
     };
 
+
+    // ╔══════════════════════════════════════════════════════════════════╗
+    // ║  FINAL30 — 5 nouvelles fonctionnalités                         ║
+    // ║  1. Reçu de paiement instantané                                 ║
+    // ║  2. Historique complet par client                               ║
+    // ║  3. Vente rapide 1 clic                                         ║
+    // ║  4. Dashboard mobile (bande KPI)                                ║
+    // ║  5. Corbeille avec restauration                                 ║
+    // ╚══════════════════════════════════════════════════════════════════╝
+
+    // ── Données globales nouvelle version ────────────────────────────
+    let trash = [];
+    try { trash = JSON.parse(localStorage.getItem('sbat_trash') || '[]'); } catch(e) { trash = []; }
+
+    const saveTrash = () => localStorage.setItem('sbat_trash', JSON.stringify(trash));
+
+    // ══════════════════════════════════════════════════════════════════
+    // 1. REÇU DE PAIEMENT INSTANTANÉ
+    // ══════════════════════════════════════════════════════════════════
+
+    const showRecuPaiement = (client, echeanceIdx, montantPaye, methode) => {
+      const logo = localStorage.getItem('company_logo') || '';
+      document.getElementById('recuLogo').src = logo;
+
+      const dateAujourd = new Date().toLocaleDateString('fr-FR');
+      const heureAujourd = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+      const resteApres = remaining(client);
+      const numRecu = 'REC-' + String(client.id).padStart(4,'0') + '-' + Date.now().toString().slice(-4);
+
+      const body = document.getElementById('recuBody');
+      body.innerHTML = `
+        <div class="recu-row">
+          <span class="label">📋 Reçu N°</span>
+          <span class="value">${numRecu}</span>
+        </div>
+        <div class="recu-row">
+          <span class="label">📅 Date</span>
+          <span class="value">${dateAujourd} à ${heureAujourd}</span>
+        </div>
+        <div class="recu-row">
+          <span class="label">👤 Client</span>
+          <span class="value">${client.nom}</span>
+        </div>
+        <div class="recu-row">
+          <span class="label">📱 Téléphone</span>
+          <span class="value">${revealField(client.tel)}</span>
+        </div>
+        <div class="recu-row">
+          <span class="label">📦 Produit</span>
+          <span class="value">${summaryProduits(client)}</span>
+        </div>
+        <div class="recu-row">
+          <span class="label">📅 Échéance</span>
+          <span class="value">N° ${echeanceIdx + 1}</span>
+        </div>
+        <div class="recu-row">
+          <span class="label">💳 Méthode</span>
+          <span class="value">${methode}</span>
+        </div>
+        <div class="recu-row">
+          <span class="label">📊 Reste après paiement</span>
+          <span class="value" style="color:${resteApres > 0 ? 'var(--danger)' : 'var(--success)'};">
+            ${fmt(resteApres)} ${resteApres === 0 ? '✅' : ''}
+          </span>
+        </div>
+      `;
+
+      document.getElementById('recuTotal').innerHTML = `
+        <span>💰 Montant reçu</span>
+        <span>${fmt(montantPaye)}</span>
+      `;
+
+      document.getElementById('recuModal').classList.add('active');
+    };
+
+    const closeRecuModal = () => {
+      document.getElementById('recuModal').classList.remove('active');
+    };
+
+    // ══════════════════════════════════════════════════════════════════
+    // 2. HISTORIQUE COMPLET PAR CLIENT
+    // ══════════════════════════════════════════════════════════════════
+
+    const openHistorique = (clientId) => {
+      const c = clients.find(x => x.id === clientId);
+      if (!c) return;
+
+      document.getElementById('histClientName').textContent = c.nom;
+      document.getElementById('histClientTel').textContent = revealField(c.tel);
+
+      const body = document.getElementById('histBody');
+      const seg = getSegment(c);
+      const segClass = seg === 'Bon' ? 'badge-success' : (seg === 'Moyen' ? 'badge-warning' : 'badge-danger');
+      const remAmt = remaining(c);
+
+      let html = `
+        <!-- Résumé client -->
+        <div class="historique-section">
+          <h4>📊 Résumé</h4>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+            <div style="font-size:0.85rem;"><span style="color:var(--text-secondary);">Date vente :</span> <strong>${c.date}</strong></div>
+            <div style="font-size:0.85rem;"><span style="color:var(--text-secondary);">Segment :</span> <span class="badge ${segClass}">${seg}</span></div>
+            <div style="font-size:0.85rem;"><span style="color:var(--text-secondary);">Prix total :</span> <strong>${fmt(c.prixVente)}</strong></div>
+            <div style="font-size:0.85rem;"><span style="color:var(--text-secondary);">Acompte :</span> <strong>${fmt(c.acompte || 0)}</strong></div>
+            <div style="font-size:0.85rem;"><span style="color:var(--text-secondary);">Restant :</span> <strong style="color:${remAmt > 0 ? 'var(--danger)' : 'var(--success)'};">${fmt(remAmt)}</strong></div>
+            <div style="font-size:0.85rem;"><span style="color:var(--text-secondary);">Type :</span> <strong>${c.typePaiement === 'moratoire' ? '📅 Moratoire' : '💵 Cash'}</strong></div>
+          </div>
+        </div>`;
+
+      // Produits
+      html += `<div class="historique-section"><h4>📦 Produits achetés</h4>`;
+      if (c.produits && c.produits.length) {
+        c.produits.forEach(p => {
+          html += `<div class="historique-vente-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <strong>${p.nom}</strong>
+              <span class="badge badge-info">${p.categorie || 'N/A'}</span>
+            </div>
+            <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:0.25rem;">
+              Qté: ${p.qty || 1} · Achat: ${fmt(p.prixAchat)} · Vente: ${fmt(p.prixVente)}
+              · Marge: <strong style="color:var(--success);">${fmt((p.prixVente - p.prixAchat) * (p.qty || 1))}</strong>
+            </div>
+          </div>`;
+        });
+      } else {
+        html += `<div style="font-size:0.85rem;color:var(--text-secondary);">${c.produit || '—'} — ${fmt(c.prixVente)}</div>`;
+      }
+      html += `</div>`;
+
+      // Échéances
+      if (c.echeances && c.echeances.length > 0) {
+        html += `<div class="historique-section"><h4>📅 Échéances</h4>`;
+        c.echeances.forEach((ech, i) => {
+          const paidAmt = typeof ech.paid === 'number' ? ech.paid : (ech.status === 'paye' ? ech.montant : 0);
+          const isOk = paidAmt >= ech.montant;
+          html += `<div class="historique-vente-card">
+            <div style="display:flex;justify-content:space-between;">
+              <strong>Échéance ${i+1}</strong>
+              <span class="badge ${isOk ? 'badge-success' : 'badge-warning'}">${isOk ? '✅ Payée' : '⏳ En attente'}</span>
+            </div>
+            <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:0.25rem;">
+              Date : ${ech.date || 'Non définie'} · Prévu : ${fmt(ech.montant)} · Payé : <strong>${fmt(paidAmt)}</strong>
+            </div>
+          </div>`;
+        });
+        html += `</div>`;
+      }
+
+      // Timeline des paiements reçus
+      const payments = c.payments || [];
+      if (payments.length > 0) {
+        html += `<div class="historique-section"><h4>💳 Timeline des paiements</h4>`;
+        [...payments].reverse().forEach(p => {
+          html += `<div class="timeline-payment">
+            <div class="timeline-dot"></div>
+            <div style="flex:1;">
+              <strong>${fmt(p.montant)}</strong>
+              <span style="color:var(--text-secondary);font-size:0.8rem;margin-left:0.5rem;">— ${p.mode || 'cash'}</span>
+            </div>
+            <div style="font-size:0.8rem;color:var(--text-secondary);">📅 ${p.date} · Ech.${p.echeance}</div>
+          </div>`;
+        });
+        html += `</div>`;
+      } else {
+        html += `<div class="historique-section"><h4>💳 Paiements</h4><div style="font-size:0.85rem;color:var(--text-secondary);">Aucun paiement enregistré.</div></div>`;
+      }
+
+      // Garantie
+      if (c.garantie) {
+        const dateVente = new Date(c.date);
+        const dateFinGarantie = new Date(dateVente);
+        dateFinGarantie.setMonth(dateFinGarantie.getMonth() + parseInt(c.garantie));
+        const garantieExpired = dateFinGarantie < new Date();
+        html += `<div class="historique-section"><h4>🛡️ Garantie</h4>
+          <div style="font-size:0.85rem;">
+            Durée : <strong>${c.garantie} mois</strong> · 
+            Expire le : <strong style="color:${garantieExpired ? 'var(--danger)' : 'var(--success)'};">
+              ${dateFinGarantie.toLocaleDateString('fr-FR')} ${garantieExpired ? '⚠️ Expirée' : '✅'}
+            </strong>
+          </div>
+        </div>`;
+      }
+
+      body.innerHTML = html;
+      document.getElementById('historiqueModal').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    };
+
+    const closeHistorique = () => {
+      document.getElementById('historiqueModal').classList.remove('active');
+      document.body.style.overflow = '';
+    };
+
+    // ══════════════════════════════════════════════════════════════════
+    // 3. VENTE RAPIDE 1 CLIC
+    // ══════════════════════════════════════════════════════════════════
+
+    const openVenteRapide = () => {
+      clearVenteRapide();
+      document.getElementById('venteRapideModal').classList.add('active');
+      document.body.style.overflow = 'hidden';
+      setTimeout(() => document.getElementById('vrNom').focus(), 200);
+    };
+
+    const closeVenteRapide = () => {
+      document.getElementById('venteRapideModal').classList.remove('active');
+      document.body.style.overflow = '';
+    };
+
+    const clearVenteRapide = () => {
+      ['vrNom','vrTel','vrProduit','vrAchat','vrVente','vrAcompte'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      const cat = document.getElementById('vrCat');
+      if (cat) cat.value = '';
+      const type = document.getElementById('vrType');
+      if (type) type.value = 'cash';
+      toggleVrAcompte();
+    };
+
+    const toggleVrAcompte = () => {
+      const type = document.getElementById('vrType')?.value;
+      const group = document.getElementById('vrAcompteGroup');
+      if (group) group.style.display = type === 'moratoire' ? 'flex' : 'none';
+    };
+
+    const saveVenteRapide = () => {
+      const nom = document.getElementById('vrNom').value.trim();
+      const tel = document.getElementById('vrTel').value.replace(/\D+/g, '');
+      const produit = document.getElementById('vrProduit').value.trim();
+      const cat = document.getElementById('vrCat').value;
+      const type = document.getElementById('vrType').value;
+      const prixAchat = +document.getElementById('vrAchat').value || 0;
+      const prixVente = +document.getElementById('vrVente').value || 0;
+      const acompte = +document.getElementById('vrAcompte').value || 0;
+
+      if (!nom || !tel || !produit || prixVente <= 0) {
+        showToast('Remplissez : nom, téléphone, produit et prix vente', 'error');
+        return;
+      }
+      if (tel.length < 9) {
+        showToast('Numéro de téléphone invalide', 'error');
+        return;
+      }
+
+      const sale = {
+        id: nextId++,
+        date: new Date().toISOString().slice(0, 10),
+        nom,
+        tel: secureField(tel),
+        produits: [{ nom: produit, categorie: cat, prixAchat, prixVente, qty: 1 }],
+        categorie: cat,
+        produit,
+        fournisseur: '',
+        typePaiement: type,
+        prixAchat,
+        prixVente,
+        acompte,
+        echeances: [],
+        serial: '',
+        garantie: 0,
+        payments: [],
+      };
+
+      clients.push(sale);
+      save();
+      renderClients();
+      renderMobileKpi();
+      closeVenteRapide();
+      showToast('⚡ Vente rapide enregistrée — ' + nom);
+    };
+
+    // ══════════════════════════════════════════════════════════════════
+    // 4. DASHBOARD MOBILE — BANDE KPI
+    // ══════════════════════════════════════════════════════════════════
+
+    const renderMobileKpi = () => {
+      const totalCreances = clients.reduce((s, c) => s + remaining(c), 0);
+      const nbVentes = clients.length;
+      const nbSoldes = clients.filter(c => remaining(c) === 0).length;
+
+      // Prochain paiement
+      const today = new Date(); today.setHours(0,0,0,0);
+      let prochainLabel = '—';
+      let prochainMin = Infinity;
+      clients.forEach(c => {
+        if (!c.echeances) return;
+        c.echeances.forEach(ech => {
+          if (ech.status === 'paye' || !ech.date) return;
+          const d = new Date(ech.date); d.setHours(0,0,0,0);
+          const diff = Math.round((d - today) / 86400000);
+          if (diff >= 0 && diff < prochainMin) {
+            prochainMin = diff;
+            prochainLabel = diff === 0 ? "Auj." : (diff === 1 ? "Demain" : "J-" + diff);
+          }
+        });
+      });
+
+      // Format compact
+      const fmtM = (n) => {
+        if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
+        if (n >= 1000) return (n/1000).toFixed(0) + 'k';
+        return n.toString();
+      };
+
+      const el = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
+      el('mkpiCreances', fmtM(totalCreances) + ' F');
+      el('mkpiVentes', nbVentes + ' vte' + (nbVentes > 1 ? 's' : ''));
+      el('mkpiProchain', prochainLabel);
+      el('mkpiSoldes', nbSoldes + ' ✅');
+    };
+
+    // ══════════════════════════════════════════════════════════════════
+    // 5. CORBEILLE — SUPPRESSION SÉCURISÉE AVEC RESTAURATION
+    // ══════════════════════════════════════════════════════════════════
+
+    const renderCorbeille = () => {
+      const body = document.getElementById('trashBody');
+      if (!body) return;
+
+      // Nettoyer les éléments de plus de 30 jours
+      const now = Date.now();
+      const before = trash.length;
+      trash = trash.filter(t => (now - t.deletedAt) < 30 * 24 * 3600 * 1000);
+      if (trash.length !== before) saveTrash();
+
+      const countEl = document.getElementById('trashCount');
+      if (countEl) countEl.textContent = trash.length + ' élément(s)';
+
+      if (trash.length === 0) {
+        body.innerHTML = `<div class="trash-empty">
+          <div class="trash-empty-icon">🗑️</div>
+          <div style="font-weight:600;color:var(--text);">Corbeille vide</div>
+          <div style="font-size:0.85rem;margin-top:0.5rem;">Les éléments supprimés apparaîtront ici</div>
+        </div>`;
+        return;
+      }
+
+      body.innerHTML = '';
+      [...trash].reverse().forEach((item, revIdx) => {
+        const realIdx = trash.length - 1 - revIdx;
+        const daysAgo = Math.floor((now - item.deletedAt) / 86400000);
+        const daysLeft = 30 - daysAgo;
+        const card = document.createElement('div');
+        card.className = 'trash-card';
+        card.innerHTML = `
+          <div class="trash-info">
+            <div class="trash-name">👤 ${item.nom}</div>
+            <div class="trash-meta">
+              📦 ${summaryProduits(item)} · 
+              💰 ${fmt(item.prixVente)} · 
+              📅 ${item.date}
+            </div>
+            <div class="trash-deleted">
+              🗑️ Supprimé il y a ${daysAgo === 0 ? "aujourd'hui" : daysAgo + ' jour(s)'} · 
+              ⏳ Expire dans ${daysLeft} jour(s)
+            </div>
+          </div>
+          <div class="trash-actions">
+            <button class="btn btn-sm btn-success" onclick="restoreClient(${realIdx})" title="Restaurer">
+              ♻️ Restaurer
+            </button>
+            <button class="btn btn-sm btn-danger" onclick="deleteForever(${realIdx})" title="Supprimer définitivement">
+              💀 Effacer
+            </button>
+          </div>
+        `;
+        body.appendChild(card);
+      });
+    };
+
+    const restoreClient = (idx) => {
+      if (idx < 0 || idx >= trash.length) return;
+      const restored = { ...trash[idx] };
+      delete restored.deletedAt;
+      // S'assurer que l'ID est unique
+      if (clients.find(c => c.id === restored.id)) {
+        restored.id = nextId++;
+      }
+      clients.push(restored);
+      trash.splice(idx, 1);
+      save();
+      saveTrash();
+      renderClients();
+      renderCorbeille();
+      renderMobileKpi();
+      showToast('♻️ Client ' + restored.nom + ' restauré avec succès');
+    };
+
+    const deleteForever = (idx) => {
+      if (!confirm('Supprimer définitivement ? Cette action est irréversible.')) return;
+      const name = trash[idx]?.nom || '';
+      trash.splice(idx, 1);
+      saveTrash();
+      renderCorbeille();
+      showToast('💀 ' + name + ' supprimé définitivement');
+    };
+
+    const emptyTrash = () => {
+      if (trash.length === 0) { showToast('La corbeille est déjà vide'); return; }
+      if (!confirm('Vider définitivement toute la corbeille (' + trash.length + ' élément(s)) ? Action irréversible.')) return;
+      trash = [];
+      saveTrash();
+      renderCorbeille();
+      showToast('🗑️ Corbeille vidée');
+    };
+
+
     // appInit() est appelé APRÈS connexion réussie (déclenchée par unlockApp())
     const appInit = () => {
       init();
       initTimeoutButtons();
+      renderMobileKpi();
       // Mettre à jour le badge Drive dans le header
       const badge = document.getElementById('driveHeaderStatus');
       if (badge) badge.textContent = '☁️ Drive';
