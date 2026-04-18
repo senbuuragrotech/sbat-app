@@ -3141,10 +3141,14 @@
     let currentFileId = localStorage.getItem('sbat_drive_file_id') || null;
     let driveConnected = false;
 
-    /** Met à jour l'indicateur de statut Drive dans l'UI. */
+    /** Met à jour l'indicateur de statut Drive dans l'UI et le header. */
     const updateDriveStatus = (status) => {
       const el = document.getElementById('driveStatus');
       if (el) el.textContent = status;
+      // Synchroniser le badge header
+      if (status.includes('🟢')) updateDriveHeaderBadge('🟢');
+      else if (status.includes('🔴')) updateDriveHeaderBadge('🔴');
+      else if (status.includes('🟡')) updateDriveHeaderBadge('🟡');
     };
 
     /** Active le bouton "Se connecter" quand gapi ET GIS sont prêts. */
@@ -3152,7 +3156,74 @@
       if (gapiInited && gisInited) {
         const btn = document.getElementById('loginButton');
         if (btn) btn.disabled = false;
+        // Tenter une connexion silencieuse si l'app est déjà déverrouillée
+        if (sessionKey) tryAutoConnect();
       }
+    };
+
+    /**
+     * Connexion automatique silencieuse à Google Drive.
+     * Utilise prompt:'' pour ne pas afficher de popup si un token existe déjà
+     * en session navigateur. Si réussi → sync automatique immédiate.
+     */
+    const tryAutoConnect = () => {
+      if (driveConnected) return; // déjà connecté
+      if (!tokenClient) return;
+      try {
+        tokenClient.callback = async (resp) => {
+          if (resp.error) {
+            // Pas de token silencieux disponible → l'utilisateur devra cliquer "Se connecter"
+            updateDriveStatus('🔴 Non connecté');
+            return;
+          }
+          driveConnected = true;
+          document.getElementById('loginButton').disabled  = false;
+          document.getElementById('syncButton').disabled   = false;
+          document.getElementById('restoreButton').disabled = false;
+          document.getElementById('logoutButton').disabled = false;
+          updateDriveStatus('🟢 Connecté');
+          updateDriveHeaderBadge('🟢');
+
+          // Sync automatique au démarrage
+          const found = await findDriveFile();
+          if (found) {
+            await resolveAndRestore();
+          } else {
+            await backupToDrive();
+          }
+          // Démarrer l'auto-backup périodique
+          startAutoBackup();
+        };
+        // prompt:'' = silencieux, ne demande rien à l'utilisateur
+        tokenClient.requestAccessToken({ prompt: '' });
+      } catch(e) {
+        console.log('Auto-connect non disponible:', e.message);
+      }
+    };
+
+    /** Démarre une sauvegarde automatique toutes les 5 minutes */
+    let autoBackupInterval = null;
+    const startAutoBackup = () => {
+      if (autoBackupInterval) clearInterval(autoBackupInterval);
+      autoBackupInterval = setInterval(() => {
+        if (driveConnected && gapi.client.getToken()) {
+          backupToDrive();
+        }
+      }, 5 * 60 * 1000); // toutes les 5 minutes
+    };
+
+    /** Met à jour le mini-badge Drive dans le header */
+    const updateDriveHeaderBadge = (status) => {
+      const badge = document.getElementById('driveHeaderStatus');
+      if (!badge) return;
+      if (status === '🟢') badge.textContent = '🟢 Drive';
+      else if (status === '🔴') badge.textContent = '🔴 Drive';
+      else badge.textContent = '🟡 Drive';
+      badge.style.background = status === '🟢'
+        ? 'rgba(21,128,61,0.8)'
+        : status === '🔴'
+          ? 'rgba(220,38,38,0.6)'
+          : 'rgba(245,158,11,0.8)';
     };
 
     function gapiLoaded() {
@@ -3228,18 +3299,19 @@
         document.getElementById('syncButton').disabled  = false;
         updateDriveStatus('🟢 Connecté');
         showToast('✅ Connecté à Google Drive');
+        updateDriveHeaderBadge('🟢');
 
         // Chercher d'abord si un fichier existe déjà dans Drive
         const found = await findDriveFile();
 
         if (found) {
-          // Fichier trouvé → résolution de conflit local vs Drive
           await resolveAndRestore();
         } else {
-          // Aucun fichier → première utilisation → créer la sauvegarde
           await backupToDrive();
           showToast('☁️ Première sauvegarde Drive créée');
         }
+        // Démarrer l'auto-backup toutes les 5 minutes
+        startAutoBackup();
       };
 
       const hasToken = gapi.client.getToken() !== null;
@@ -3286,6 +3358,8 @@
       localStorage.removeItem('sbat_drive_file_id');
       currentFileId  = null;
       driveConnected = false;
+      if (autoBackupInterval) { clearInterval(autoBackupInterval); autoBackupInterval = null; }
+      updateDriveHeaderBadge('🔴');
       document.getElementById('loginButton').disabled   = false;
       document.getElementById('syncButton').disabled    = true;
       document.getElementById('restoreButton').disabled  = true;
@@ -6505,9 +6579,12 @@
       initTimeoutButtons();
       renderMobileKpi();
       injectCachet();
-      // Mettre à jour le badge Drive dans le header
-      const badge = document.getElementById('driveHeaderStatus');
-      if (badge) badge.textContent = '☁️ Drive';
+      updateDriveHeaderBadge('🔴');
+      // Tenter connexion Drive automatique si gapi/GIS déjà prêts
+      if (gapiInited && gisInited) {
+        tryAutoConnect();
+      }
+      // Sinon tryAutoConnect sera appelé depuis maybeEnableButtons quand ils seront prêts
     };
 
     // Bootstrap : afficher l'écran de sécurité au chargement
